@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Fichas da Sessão das Oito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+/* Layout: uma coluna de 720px, cabeçalho fixo, abas em faixa rolável.
+   Cada personagem troca as cores do site (Abel: roxo, preto e marrom. Thomas: azul, cinza e preto). */
+:root{
+  --ink:#100e14; --panel:#1a1720; --panel2:#24202c; --line:#38323f;
+  --text:#f0ecf3; --muted:#a8a1b3;
+  --a:#d9b26a; --a2:#b38b4d; --on-a:#17110a;
+  --ok:#6fd1a0; --warn:#e6b05a; --bad:#ec6b66;
+  --display:'Special Elite','Courier New',monospace;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body[data-char="abel"]{--ink:#0e0a17;--panel:#181226;--panel2:#231a38;--line:#3b2e5c;--a:#a47bff;--a2:#b88a74;--on-a:#12081f;--text:#f0ebfa;--muted:#aca3c4}
+body[data-char="thomas"]{--ink:#040913;--panel:#0b1323;--panel2:#12203a;--line:#243a63;--a:#5b9dff;--a2:#e2e2e4;--on-a:#04101f;--text:#eaf0fa;--muted:#9fb0cc}
+.t-abel{--a:#a47bff;--a2:#b88a74}
+.t-thomas{--a:#5b9dff;--a2:#e2e2e4}
+.t-neutro{--a:#d9b26a;--a2:#b38b4d}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.5 var(--body)}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:28px;line-height:1.15}
+h2{font-size:20px;margin-bottom:12px}
+h3{font-size:17px}
+p{margin:0 0 8px}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.top{position:sticky;top:0;z-index:5;background:var(--ink);border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;flex-direction:column;line-height:1.15;margin-right:auto}
+.brand b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--a)}
+.brand span{font-size:12px;color:var(--muted)}
+.status{font-size:12px;color:var(--muted);white-space:nowrap}
+.status.ok{color:var(--ok)}.status.busy{color:var(--warn)}.status.bad{color:var(--bad)}
+
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 48px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sb{justify-content:space-between}
+
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--a)}
+.btn.main{background:var(--a);color:var(--on-a);border-color:var(--a);font-weight:600}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 12px;min-height:36px;font-family:var(--mono)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn:disabled,.die:disabled{opacity:.5;cursor:not-allowed}
+
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 2px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--a)}
+
+.plate{border:1px solid var(--line);border-left:6px solid var(--a);border-radius:10px;padding:16px;background:linear-gradient(135deg,var(--panel2),var(--panel))}
+.plate-k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--a2)}
+.plate-s{color:var(--muted);margin:4px 0 0}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.fld span{color:var(--muted)}
+.fld.wide{grid-column:1/-1}
+input[type=text],input[type=password],input:not([type]),input[type=number],textarea{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px}
+textarea{resize:vertical;min-height:84px;line-height:1.5}
+input:disabled,textarea:disabled{opacity:.7}
+@media(max-width:480px){.fields{grid-template-columns:1fr}}
+
+.dice{display:flex;gap:6px;flex-wrap:wrap}
+.die{min-width:48px;min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--ink);cursor:pointer;font-family:var(--mono)}
+.die:hover{border-color:var(--a)}
+.die.on{background:var(--a);color:var(--on-a);border-color:var(--a);font-weight:600}
+.cap{font-size:13px;color:var(--muted)}
+.attr{padding:10px 0;border-top:1px solid var(--line)}
+.attr:first-of-type{border-top:0}
+.hint{font-size:13px;color:var(--warn);margin:10px 0 0}
+.hint.ok{color:var(--ok)}
+
+.vital .big{font-size:22px}
+.bar{height:12px;border-radius:6px;background:var(--ink);border:1px solid var(--line);overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:var(--a)}
+.vital.pv .bar i{background:var(--bad)}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.inline{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.inline input{width:76px}
+.alert{border:1px solid var(--warn);border-left-width:6px;border-radius:10px;padding:12px 14px;background:var(--panel)}
+.alert b{display:block;color:var(--warn)}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;font-family:var(--mono)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.pericia{padding:12px 0;border-top:1px solid var(--line)}
+.pericia:first-of-type{border-top:0}
+.pericia .test{font-family:var(--mono);font-size:13px;color:var(--a2)}
+.pericia input{margin-top:8px}
+
+.cards{display:grid;gap:12px}
+.fc{display:flex;flex-direction:column;gap:10px;border-left:6px solid var(--a)}
+.fc .bar{margin:4px 0}
+.fc.novo{box-shadow:0 0 0 2px var(--a)}
+.badge{background:var(--a);color:var(--on-a);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600}
+.feed{display:flex;flex-direction:column}
+.fe{display:grid;grid-template-columns:10px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.fe:first-child{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--a);margin-top:7px}
+.fe small{color:var(--muted)}
+.fe.new{background:linear-gradient(90deg,rgba(255,255,255,.04),transparent)}
+.linkrow{display:flex;gap:8px}
+.linkrow input{font-family:var(--mono);font-size:13px}
+.foot{font-size:12px;color:var(--muted);margin-top:8px}
+.empty{text-align:center;padding:28px 16px}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .25s}}
+</style>
+</head>
+<body data-char="neutro">
+<div id="app"></div>
+<noscript>Esta ficha precisa de JavaScript.</noscript>
+<script src="supabase.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* A chave abaixo é a publishable, que pode ficar pública. Nunca coloque a chave secret aqui. */
+var SB_URL='https://ywcmprththajbptzxiep.supabase.co';
+var SB_KEY='sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb';
+
+var app=document.getElementById('app');
+var DICE=['d4','d6','d8','d10','d12'];
+var ATTRS=[['fisico','Físico'],['mente','Mente'],['emocao','Emoção']];
+var ATTR_LAB={fisico:'Físico',mente:'Mente',emocao:'Emoção'};
+var ATTR_NIVEL={d4:'abaixo da média',d6:'adulto comum',d8:'acima da média',d10:'um dos melhores da região',d12:'ápice humano'};
+var PER_NIVEL={d4:'destreinado',d6:'treinado',d8:'especialista',d10:'mestre',d12:'grão-mestre'};
+/* As 20 primeiras são as da ficha oficial do playtest, com o atributo que a ficha mostra ao lado de cada uma.
+   As duas últimas são extras do mestre pra 1978 (marcadas com extra:1). */
+var PERICIAS=[
+  {id:'acrobacia',nome:'Acrobacia',attr:'fisico'},
+  {id:'animais',nome:'Animais',attr:'emocao'},
+  {id:'aptidao',nome:'Aptidão',attr:'mente',esp:'aptidao',dica:'Especialidade: Artes, Erudição, Folclore, Religião, Política'},
+  {id:'atletismo',nome:'Atletismo',attr:'fisico'},
+  {id:'crime',nome:'Crime',attr:'fisico'},
+  {id:'disciplina',nome:'Disciplina',attr:'emocao'},
+  {id:'enganacao',nome:'Enganação',attr:'emocao'},
+  {id:'furtividade',nome:'Furtividade',attr:'fisico'},
+  {id:'inspecionar',nome:'Inspecionar',attr:'mente'},
+  {id:'intimidar',nome:'Intimidar',attr:'emocao'},
+  {id:'intuicao',nome:'Intuição',attr:'emocao'},
+  {id:'luta',nome:'Luta',attr:'fisico'},
+  {id:'medicina',nome:'Medicina',attr:'mente'},
+  {id:'ocultismo',nome:'Ocultismo',attr:'mente'},
+  {id:'oficio',nome:'Ofício',attr:'mente',esp:'oficio',dica:'Especialidade: eletricidade, costura, mecânica...'},
+  {id:'percepcao',nome:'Percepção',attr:'mente'},
+  {id:'persuasao',nome:'Persuasão',attr:'emocao'},
+  {id:'pontaria',nome:'Pontaria',attr:'fisico'},
+  {id:'sobrevivencia',nome:'Sobrevivência',attr:'mente'},
+  {id:'vigor',nome:'Vigor',attr:'fisico'},
+  {id:'tecnologia',nome:'Tecnologia',attr:'mente',extra:1,nota:'Rádio, projetor de cinema, gravador, telefone, fiação e eletrônica da época.'},
+  {id:'pilotagem',nome:'Pilotagem',attr:'fisico',extra:1,nota:'Dirigir carro, caminhão, trator e moto.'}
+];
+var TEXTOS={nome:'Nome',alias:'Outro nome',idade:'Idade',ocupacao:'Ocupação',motivo:'Motivo pessoal',talento:'Talento',historia:'História'};
+var NUMS={pv:'PV',pvMax:'PV máximo',pd:'PD',pdMax:'PD máximo'};
+var ESPS={aptidao:'Aptidão (especialidade)',oficio:'Ofício (especialidade)'};
+var BLANK={tema:'neutro',nome:'',alias:'',idade:'',ocupacao:'',motivo:'',talento:'',historia:'',
+  attrs:{fisico:'d6',mente:'d6',emocao:'d6'},pericias:{},esp:{aptidao:'',oficio:''},pv:15,pvMax:15,pd:12,pdMax:12,log:[]};
+
+var params=new URLSearchParams(location.search);
+var ctx={mode:'inicio',token:null,senha:null,modelos:{},fichas:{},tokens:{},err:'',busy:false,slow:false,novo:null,online:true};
+var view='loading';
+var sh={id:null,S:null,saved:null,dirty:new Set(),timer:null,saving:false,pending:null,tab:'ficha',blocked:false,save:null};
+var sb=null;
+
+/* ---------- utilidades ---------- */
+function add(e,c){
+  if(c===null||c===undefined||c===false) return;
+  if(Array.isArray(c)){c.forEach(function(x){add(e,x)});return}
+  e.appendChild(c.nodeType?c:document.createTextNode(String(c)));
+}
+function h(tag,a){
+  var e=document.createElement(tag);
+  if(a){for(var k in a){var v=a[k];
+    if(v===null||v===undefined||v===false) continue;
+    if(k==='class') e.className=v;
+    else if(k==='style') e.style.cssText=v;
+    else if(k.slice(0,2)==='on') e.addEventListener(k.slice(2),v);
+    else if(k==='value') e.value=v;
+    else if(k==='disabled') e.disabled=true;
+    else e.setAttribute(k,v===true?'':v);
+  }}
+  for(var i=2;i<arguments.length;i++) add(e,arguments[i]);
+  return e;
+}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function sj(o){
+  if(o===null||typeof o!=='object') return JSON.stringify(o);
+  if(Array.isArray(o)) return '['+o.map(sj).join(',')+']';
+  return '{'+Object.keys(o).sort().filter(function(k){return o[k]!==undefined}).map(function(k){return JSON.stringify(k)+':'+sj(o[k])}).join(',')+'}';
+}
+function getP(o,p){return p.split('.').reduce(function(a,k){return a==null?a:a[k]},o)}
+function setP(o,p,v){var a=p.split('.');for(var i=0;i<a.length-1;i++){o=o[a[i]]=o[a[i]]||{}}o[a[a.length-1]]=v}
+function ago(t){
+  if(!t) return 'ainda não mexeu';
+  var s=Math.max(0,(Date.now()-t)/1000);
+  if(s<45) return 'agora há pouco';
+  var m=Math.round(s/60); if(m<60) return 'há '+m+' min';
+  var hh=Math.round(m/60); if(hh<24) return 'há '+hh+' h';
+  return 'há '+Math.round(hh/24)+' d';
+}
+function LSget(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function LSset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function LSdel(k){try{localStorage.removeItem(k)}catch(e){}}
+function seenGet(id){return +LSget('sdo_seen_'+id)||0}
+function seenSet(id,t){LSset('sdo_seen_'+id,String(t))}
+function per(S,id){return (S.pericias&&S.pericias[id])||'d4'}
+function attrs(S){return Object.assign({fisico:'d6',mente:'d6',emocao:'d6'},S.attrs||{})}
+function norm(S){
+  S=S||{};
+  var o=Object.assign({},BLANK,S);
+  o.attrs=Object.assign({},BLANK.attrs,S.attrs||{});
+  o.pericias=Object.assign({},S.pericias||{});
+  o.esp=Object.assign({},BLANK.esp,S.esp||{});
+  o.log=Array.isArray(S.log)?S.log:[];
+  o.tema=S.tema||'neutro';
+  return o;
+}
+function loadS(d){return norm(clone(d||{}))}
+
+/* ---------- banco (funções do Supabase) ---------- */
+function client(){
+  if(sb) return sb;
+  if(!window.supabase||!window.supabase.createClient) throw new Error('sem_biblioteca');
+  sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  return sb;
+}
+async function rpc(name,args){
+  var r=await client().rpc(name,args);
+  if(r&&r.error){var e=new Error(r.error.message||'erro');e.msg=String(r.error.message||'');e.code=r.error.code;throw e}
+  return r.data;
+}
+
+/* ---------- registro de mudanças ---------- */
+function diffLog(a,b){
+  var out=[],k;
+  for(k in TEXTOS) if((a[k]||'')!==(b[k]||'')) out.push({k:k,l:TEXTOS[k],txt:1,para:String(b[k]||'').slice(0,160)});
+  for(k in NUMS) if(a[k]!==b[k]) out.push({k:k,l:NUMS[k],de:a[k],para:b[k]});
+  ATTRS.forEach(function(x){var o=attrs(a)[x[0]],n=attrs(b)[x[0]]; if(o!==n) out.push({k:'attrs.'+x[0],l:x[1],de:o,para:n})});
+  PERICIAS.forEach(function(p){var o=per(a,p.id),n=per(b,p.id); if(o!==n) out.push({k:'pericias.'+p.id,l:p.nome,de:o,para:n})});
+  for(k in ESPS){var o2=(a.esp&&a.esp[k])||'',n2=(b.esp&&b.esp[k])||''; if(o2!==n2) out.push({k:'esp.'+k,l:ESPS[k],txt:1,para:n2.slice(0,160)})}
+  return out;
+}
+function mergeLog(log,entries,por){
+  var out=log.slice(),now=Date.now();
+  entries.forEach(function(e){
+    e.t=now;e.por=por;
+    var i=-1;
+    for(var j=out.length-1;j>=0;j--){if(out[j].k===e.k&&out[j].por===por&&now-out[j].t<120000){i=j;break}}
+    if(i>=0){
+      if(!e.txt) e.de=out[i].de;
+      if(!e.txt&&e.de===e.para){out.splice(i,1)} else {out[i]=e}
+    } else out.push(e);
+  });
+  return out.slice(-60);
+}
+function logTxt(e){
+  if(e.txt) return e.l+' editado'+(e.para?': “'+e.para+'”':'');
+  return e.l+': '+e.de+' → '+e.para;
+}
+
+/* ---------- gravação ---------- */
+function setStatus(t,c){var s=document.getElementById('status');if(s){s.textContent=t;s.className='status '+(c||'')}}
+function sched(ms){
+  if(sh.timer) clearTimeout(sh.timer);
+  setStatus('alterando…','busy');
+  sh.timer=setTimeout(flush,ms||700);
+}
+function mut(path,val,redraw){
+  if(!sh.S||sh.blocked) return;
+  setP(sh.S,path,val);
+  sh.dirty.add(path.split('.')[0]);
+  sched(redraw?250:700);
+  if(redraw) render();
+}
+async function flush(){
+  if(sh.timer){clearTimeout(sh.timer);sh.timer=null}
+  if(!sh.S||sh.saving||sh.blocked||!sh.dirty.size) return;
+  var S=sh.S,save=sh.save,base=sh.saved||{};
+  sh.saving=true;setStatus('salvando…','busy');
+  var keys=Array.from(sh.dirty);sh.dirty.clear();
+  var cur=clone(S),por=ctx.mode==='mestre'?'mestre':'jogador';
+  var log=mergeLog(S.log||[],diffLog(base,cur),por);
+  var patch={log:log,atualizadoEm:Date.now(),atualizadoPor:por};
+  keys.forEach(function(k){patch[k]=cur[k]});
+  try{
+    await save(patch);
+    if(sh.S===S){
+      Object.assign(S,{log:log,atualizadoEm:patch.atualizadoEm,atualizadoPor:por});
+      sh.saved=Object.assign(cur,{log:log,atualizadoEm:patch.atualizadoEm,atualizadoPor:por});
+      sh.pending=null;
+      setStatus('salvo','ok');
+    }
+  }catch(e){
+    if(sh.S===S){
+      keys.forEach(function(k){sh.dirty.add(k)});
+      if(e&&/nao_encontrada|senha_errada/.test(e.msg||'')){sh.blocked=true;setStatus('ficha não encontrada','bad')}
+      else{setStatus('não salvou, tentando de novo','bad');sh.timer=setTimeout(flush,4000)}
+    }
+  }finally{
+    sh.saving=false;
+    if(sh.S===S&&sh.dirty.size&&!sh.timer&&!sh.blocked) sh.timer=setTimeout(flush,600);
+  }
+}
+
+/* ---------- abrir e atualizar ficha ---------- */
+function openSheet(id,data,save){
+  sh.id=id;sh.save=save;sh.S=loadS(data);sh.saved=loadS(data);
+  sh.dirty=new Set();sh.pending=null;sh.blocked=false;sh.tab='ficha';view='sheet';render();window.scrollTo(0,0);
+}
+function closeSheet(){
+  flush();sh.id=null;sh.S=null;view='mesa';render();
+}
+function focusInside(){
+  var a=document.activeElement;
+  return !!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&app.contains(a));
+}
+function onRemote(id,data){
+  if(sh.id!==id) return;
+  if(!data){
+    sh.id=null;sh.S=null;view='mesa';render();return;
+  }
+  var nd=loadS(data);
+  if(sj(nd)===sj(sh.S)){sh.saved=clone(nd);return}
+  if(sh.dirty.size||sh.saving||focusInside()){sh.pending=nd;return}
+  sh.S=nd;sh.saved=clone(nd);render();
+}
+document.addEventListener('focusout',function(){
+  setTimeout(function(){
+    if(sh.pending&&!sh.dirty.size&&!sh.saving&&!focusInside()){var d=sh.pending;sh.pending=null;onRemote(sh.id,d)}
+  },0);
+});
+document.addEventListener('visibilitychange',function(){if(document.hidden) flush()});
+
+/* ---------- peças de interface ---------- */
+function field(label,path,o){
+  o=o||{};
+  var id='f_'+path.replace(/\W/g,'_');
+  var v=getP(sh.S,path);if(v===undefined||v===null) v='';
+  var el=h(o.area?'textarea':'input',{id:id,value:v,rows:o.rows,placeholder:o.ph||'',oninput:function(e){mut(path,e.target.value)}});
+  return h('label',{class:'fld'+(o.wide?' wide':''),for:id},h('span',{},label),el);
+}
+function dieSel(path,cur,aria){
+  return h('div',{class:'dice',role:'group','aria-label':aria},DICE.map(function(d){
+    return h('button',{type:'button',class:'die'+(d===cur?' on':''),'aria-pressed':String(d===cur),onclick:function(){mut(path,d,true)}},d);
+  }));
+}
+function vital(lab,k,mk,cls){
+  var S=sh.S,v=+S[k]||0,m=Math.max(1,+S[mk]||1),pct=Math.max(0,Math.min(100,v/m*100));
+  function step(d){mut(k,Math.max(0,Math.min(m,v+d)),true)}
+  return h('section',{class:'card vital '+cls},
+    h('div',{class:'row sb'},h('h3',{},lab),h('span',{class:'mono big'},v+' / '+m)),
+    h('div',{class:'bar',role:'img','aria-label':lab+' '+v+' de '+m},h('i',{style:'width:'+pct+'%'})),
+    h('div',{class:'steps'},[-5,-1,1,5].map(function(d){
+      return h('button',{type:'button',class:'btn sm',onclick:function(){step(d)}},(d>0?'+':'−')+Math.abs(d));
+    })),
+    h('label',{class:'inline'},'máximo',h('input',{type:'number',min:'1',max:'99',value:m,onchange:function(e){
+      var n=Math.max(1,Math.min(99,+e.target.value||1));mut(mk,n);if(+S[k]>n) mut(k,n);render();
+    }})));
+}
+function alertBox(t,x){return h('div',{class:'alert',role:'status'},h('b',{},t),x)}
+
+function plate(S){
+  return h('div',{class:'plate'},
+    h('div',{class:'plate-k'},'Ficha de investigador · Coxilha Seca, 1978'),
+    h('h1',{},S.nome||'Sem nome'),
+    h('p',{class:'plate-s'},[S.ocupacao,S.idade?S.idade+' anos':''].filter(Boolean).join(' · ')),
+    S.alias?h('p',{class:'plate-s'},'Também se apresenta como '+S.alias):null);
+}
+function tabsBar(){
+  var T=[['ficha','Ficha'],['pericias','Perícias'],['historia','História']];
+  return h('div',{class:'tabs',role:'tablist'},T.map(function(t){
+    return h('button',{type:'button',role:'tab','aria-selected':String(sh.tab===t[0]),onclick:function(){sh.tab=t[0];render()}},t[1]);
+  }));
+}
+
+/* ---------- abas da ficha ---------- */
+function distOk(S){
+  var v=ATTRS.map(function(x){return +attrs(S)[x[0]].slice(1)}).sort(function(a,b){return b-a}).join();
+  return v==='10,6,6'||v==='8,8,6';
+}
+function tabFicha(){
+  var S=sh.S,A=attrs(S),zero=[];
+  if((+S.pv)<=0) zero.push(alertBox('PV em 0','Teste de lesão: Físico '+A.fisico+' + Vigor '+per(S,'vigor')+', DT 7 (mais 3 a cada teste na cena). No fim da cena volta com 1 PV.'));
+  if((+S.pd)<=0) zero.push(alertBox('PD em 0','Teste de trauma: Emoção '+A.emocao+' + Disciplina '+per(S,'disciplina')+', DT 7 (mais 3 a cada teste na cena). Se falhar, rola na tabela de traumas.'));
+  var ok=distOk(S);
+  return [
+    h('section',{class:'card'},h('h2',{},'Quem é'),h('div',{class:'fields'},
+      field('Nome','nome'),field('Idade','idade'),field('Ocupação','ocupacao'),field('Outro nome','alias',{ph:'se tiver'}),
+      field('Motivo pessoal pra ir ao cinema','motivo',{area:1,rows:3,wide:1}),
+      field('Talento','talento',{area:1,rows:3,wide:1}))),
+    zero,
+    vital('PV (vida)','pv','pvMax','pv'),
+    vital('PD (determinação)','pd','pdMax','pd'),
+    h('section',{class:'card'},h('h2',{},'Atributos'),
+      ATTRS.map(function(x){return h('div',{class:'attr'},
+        h('div',{class:'row sb'},h('b',{},x[1]),h('span',{class:'cap'},ATTR_NIVEL[A[x[0]]])),
+        dieSel('attrs.'+x[0],A[x[0]],x[1]))}),
+      h('p',{class:'hint'+(ok?' ok':'')},ok?'Distribuição dentro da sugestão do guia.':'O guia sugere d10, d6, d6 ou d8, d8, d6, distribuídos como quiser.'))
+  ];
+}
+function tabPericias(){
+  var S=sh.S,A=attrs(S),c={d4:0,d6:0,d8:0,d10:0,d12:0};
+  PERICIAS.forEach(function(p){c[per(S,p.id)]++});
+  var sug={d10:1,d8:3,d6:4};
+  var chips=['d10','d8','d6'].map(function(d){return h('span',{class:'chip'+(c[d]>sug[d]?' warn':'')},d+' '+c[d]+'/'+sug[d])});
+  if(c.d12) chips.push(h('span',{class:'chip warn'},'d12 '+c.d12+' (fora da sugestão)'));
+  return h('section',{class:'card'},
+    h('h2',{},'Perícias'),
+    h('p',{class:'cap'},'Todas começam em d4. Sugestão do guia: 1 em d10, 3 em d8 e 4 em d6. O teste é o dado do atributo mais o dado da perícia, e cada perícia usa o atributo da ficha oficial.'),
+    h('div',{class:'chips'},chips),
+    PERICIAS.map(function(p){
+      var d=per(S,p.id);
+      return h('div',{class:'pericia'},
+        h('div',{class:'row sb'},h('b',{},p.nome,p.extra?h('span',{class:'chip',style:'margin-left:8px'},'extra do mestre'):null),h('span',{class:'cap'},PER_NIVEL[d])),
+        p.nota?h('div',{class:'cap'},p.nota):null,
+        h('div',{class:'test'},ATTR_LAB[p.attr]+' '+A[p.attr]+' + '+d),
+        dieSel('pericias.'+p.id,d,p.nome),
+        p.esp?h('input',{placeholder:p.dica,value:(S.esp&&S.esp[p.esp])||'','aria-label':p.nome+', especialidade',oninput:function(e){mut('esp.'+p.esp,e.target.value)}}):null);
+    }),
+    h('p',{class:'foot'},'Tecnologia e Pilotagem não estão na ficha oficial. O mestre acrescentou pra jogar em 1978. Em um teste, o mestre pode pedir outro atributo.'));
+}
+function tabHistoria(){
+  return h('section',{class:'card'},h('h2',{},'História'),
+    h('div',{class:'fields'},field('Conte de onde você veio e como chegou até aqui','historia',{area:1,rows:16,wide:1})));
+}
+
+/* ---------- visão da ficha ---------- */
+var confirmDel=null;
+function delBtn(id){
+  if(confirmDel===id) return h('span',{class:'row'},
+    h('button',{type:'button',class:'btn danger',onclick:function(){confirmDel=null;mApagar(id)}},'Sim, apagar'),
+    h('button',{type:'button',class:'btn ghost',onclick:function(){confirmDel=null;render()}},'Cancelar'));
+  return h('button',{type:'button',class:'btn ghost danger',onclick:function(){confirmDel=id;render()}},'Apagar ficha');
+}
+function viewSheet(){
+  var S=sh.S,box=[];
+  if(ctx.mode==='mestre'){
+    box.push(h('div',{class:'card row sb'},
+      h('span',{},'Você está na ficha de '+(S.nome||'Sem nome')+'. O que você mudar aparece pra ele, marcado como mestre.'),
+      h('span',{class:'row'},
+        h('button',{type:'button',class:'btn',onclick:function(){seenSet(sh.id,Date.now());render()}},'Marcar como visto'),
+        delBtn(sh.id))));
+  }
+  var body=sh.tab==='ficha'?tabFicha():sh.tab==='pericias'?tabPericias():tabHistoria();
+  return h('div',{class:'wrap'},box,plate(S),tabsBar(),body,
+    h('p',{class:'foot'},'Regras: playtest beta de Ordem Paranormal RPG 2 (Jambô), uso gratuito e sem fins lucrativos. Limites de distribuição são sugestões do mestre.'));
+}
+
+/* ---------- visão do mestre ---------- */
+function mesaTabs(){
+  return h('div',{class:'row sb'},
+    h('div',{class:'tabs',role:'tablist',style:'flex:1;border-bottom:0'},[['mesa','Mesa'],['atividade','Atividade']].map(function(t){
+      return h('button',{type:'button',role:'tab','aria-selected':String(view===t[0]),onclick:function(){view=t[0];render()}},t[1]);
+    })),
+    h('button',{type:'button',class:'btn ghost',onclick:mSair},'Sair'));
+}
+function novas(id,f){
+  var s=seenGet(id);
+  return (f.log||[]).filter(function(e){return e.t>s&&e.por!=='mestre'}).length;
+}
+function linkDe(id){return location.origin+location.pathname+'?j='+ctx.tokens[id]}
+function copiar(inp,btn){
+  var ok=false;
+  try{inp.focus();inp.select();inp.setSelectionRange(0,9999);ok=document.execCommand('copy')}catch(e){}
+  if(!ok&&navigator.clipboard){navigator.clipboard.writeText(inp.value).then(function(){btn.textContent='Copiado'},function(){});}
+  btn.textContent=ok?'Copiado':'Segure e copie';
+  setTimeout(function(){btn.textContent='Copiar link'},2000);
+}
+function criarCard(){
+  var ids=Object.keys(ctx.modelos);
+  return h('section',{class:'card'},h('h2',{},'Criar ficha'),
+    h('p',{class:'cap'},'Cada ficha criada gera um link pessoal. Quem abre o link edita só aquela ficha.'),
+    ctx.err?alertBox('Algo deu errado',ctx.err):null,
+    h('div',{class:'row'},ids.map(function(id){
+      var m=ctx.modelos[id];
+      return h('button',{type:'button',class:'btn',disabled:ctx.busy,onclick:function(){mCriar(id)}},m.nome||id);
+    }),h('button',{type:'button',class:'btn ghost',disabled:ctx.busy,onclick:function(){mCriar('__blank')}},'Em branco')));
+}
+function viewMesa(){
+  var ids=Object.keys(ctx.fichas).sort(function(a,b){return (ctx.fichas[b].atualizadoEm||0)-(ctx.fichas[a].atualizadoEm||0)});
+  var items;
+  if(!ids.length){
+    items=h('div',{class:'card empty'},h('h2',{},'Nenhuma ficha ainda'),
+      h('p',{class:'muted'},'Crie a ficha do Abel e a do Thomas abaixo e mande o link pessoal de cada um. Depois elas aparecem aqui e se atualizam sozinhas.'));
+  } else {
+    items=h('div',{class:'cards'},ids.map(function(id){
+      var f=ctx.fichas[id],A=attrs(f),n=novas(id,f);
+      var inp=h('input',{readonly:1,value:linkDe(id),'aria-label':'Link pessoal de '+(f.nome||'jogador'),onfocus:function(e){e.target.select()}});
+      var btn=h('button',{type:'button',class:'btn'},'Copiar link');
+      btn.addEventListener('click',function(){copiar(inp,btn)});
+      return h('article',{class:'card fc t-'+(f.tema||'neutro')+(ctx.novo===id?' novo':'')},
+        h('div',{class:'row sb'},h('h2',{style:'margin:0'},f.nome||'Sem nome'),n?h('span',{class:'badge'},n+' nova'+(n>1?'s':'')):null),
+        h('div',{class:'cap'},[f.ocupacao,f.idade?f.idade+' anos':''].filter(Boolean).join(' · ')+' · mexeu '+ago(f.atualizadoEm)),
+        h('div',{},h('div',{class:'row sb cap'},h('span',{},'PV'),h('span',{class:'mono'},f.pv+' / '+f.pvMax)),
+          h('div',{class:'bar'},h('i',{style:'background:var(--bad);width:'+Math.max(0,Math.min(100,f.pv/(f.pvMax||1)*100))+'%'})),
+          h('div',{class:'row sb cap'},h('span',{},'PD'),h('span',{class:'mono'},f.pd+' / '+f.pdMax)),
+          h('div',{class:'bar'},h('i',{style:'width:'+Math.max(0,Math.min(100,f.pd/(f.pdMax||1)*100))+'%'}))),
+        h('div',{class:'mono cap'},'Fís '+A.fisico+' · Men '+A.mente+' · Emo '+A.emocao),
+        h('div',{class:'linkrow'},inp,btn),
+        h('button',{type:'button',class:'btn main',onclick:function(){abrirMestre(id)}},'Abrir ficha'));
+    }));
+  }
+  return h('div',{class:'wrap'},mesaTabs(),items,criarCard());
+}
+function viewAtividade(){
+  var all=[],id;
+  for(id in ctx.fichas){(function(id){var f=ctx.fichas[id];(f.log||[]).forEach(function(e){
+    all.push({e:e,id:id,nome:f.nome||'Sem nome',tema:f.tema||'neutro',novo:e.t>seenGet(id)&&e.por!=='mestre'});
+  })})(id)}
+  all.sort(function(a,b){return b.e.t-a.e.t});all=all.slice(0,120);
+  var lista=all.length?h('div',{class:'feed'},all.map(function(x){
+    return h('div',{class:'fe t-'+x.tema+(x.novo?' new':'')},h('i',{class:'dot'}),
+      h('div',{},h('div',{},logTxt(x.e)),
+        h('small',{},x.nome+' · '+(x.e.por==='mestre'?'mestre':'jogador')+' · '+ago(x.e.t)+(x.novo?' · novo':''))));
+  })):h('p',{class:'muted'},'Nenhuma alteração ainda. Quando alguém mexer na ficha, aparece aqui.');
+  var ids=Object.keys(ctx.fichas);
+  return h('div',{class:'wrap'},mesaTabs(),h('section',{class:'card'},
+    h('div',{class:'row sb'},h('h2',{style:'margin:0'},'O que mudou'),
+      ids.length?h('button',{type:'button',class:'btn',onclick:function(){var t=Date.now();ids.forEach(function(i){seenSet(i,t)});render()}},'Marcar tudo como visto'):null),
+    h('div',{style:'height:8px'}),lista));
+}
+function viewLogin(){
+  var inp=h('input',{type:'password',id:'pw',autocomplete:'current-password',autocapitalize:'off',autocorrect:'off',spellcheck:'false'});
+  var keep=h('input',{type:'checkbox',id:'pw-keep',checked:1});
+  function entrar(){mLogin(inp.value,keep.checked)}
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter') entrar()});
+  return h('div',{class:'wrap'},h('section',{class:'card'},h('h1',{},'Visão do mestre'),
+    h('p',{class:'muted',style:'margin-top:8px'},'Digite a senha do mestre pra ver as fichas.'),
+    ctx.err?alertBox('Não entrou',ctx.err):null,
+    h('label',{class:'fld',for:'pw'},h('span',{},'Senha'),inp),
+    h('label',{class:'inline',style:'margin:12px 0',for:'pw-keep'},keep,'Lembrar neste aparelho'),
+    h('button',{type:'button',class:'btn main',disabled:ctx.busy,onclick:entrar},'Entrar')));
+}
+
+/* ---------- ações do mestre ---------- */
+async function mLogin(pw,keep,silent){
+  if(!pw){ctx.err='Digite a senha.';render();return}
+  ctx.busy=true;ctx.err='';if(!silent) render();
+  try{
+    var ms=await rpc('sdo_m_modelos',{p_senha:pw});
+    ctx.senha=pw;ctx.modelos={};(ms||[]).forEach(function(m){ctx.modelos[m.id]=m.dados||{}});
+    if(keep) LSset('sdo_mk',pw); else LSdel('sdo_mk');
+    await mRefresh();
+    view='mesa';ctx.busy=false;render();
+    startPoll(pollMestre,8000);
+  }catch(e){
+    ctx.busy=false;LSdel('sdo_mk');
+    ctx.err=/senha_errada/.test(e.msg||'')?'Senha errada.':'Não consegui falar com o banco. Confira se o SQL já foi rodado no Supabase.';
+    view='login';render();
+  }
+}
+function mSair(){
+  flush();LSdel('sdo_mk');ctx.senha=null;ctx.fichas={};sh.id=null;sh.S=null;view='login';ctx.err='';render();
+}
+async function mRefresh(){
+  var list=await rpc('sdo_m_listar',{p_senha:ctx.senha});
+  var f={},t={};
+  (list||[]).forEach(function(x){f[x.id]=loadS(x.dados);t[x.id]=x.token});
+  ctx.fichas=f;ctx.tokens=t;
+}
+async function pollMestre(){
+  if(document.hidden||!ctx.senha||view==='login') return;
+  try{
+    await mRefresh();
+    if(!ctx.online){ctx.online=true;setStatus('salvo','ok')}
+    if(sh.id) onRemote(sh.id,ctx.fichas[sh.id]||null);
+    else if((view==='mesa'||view==='atividade')&&!focusInside()) render();
+  }catch(e){ctx.online=false;setStatus('sem conexão','bad')}
+}
+function abrirMestre(id){
+  openSheet(id,ctx.fichas[id],function(patch){return rpc('sdo_m_salvar',{p_senha:ctx.senha,p_id:id,p_patch:patch})});
+}
+async function mCriar(modelo){
+  if(ctx.busy) return;
+  ctx.busy=true;ctx.err='';render();
+  try{
+    var r=await rpc('sdo_m_criar',{p_senha:ctx.senha,p_modelo:modelo});
+    await mRefresh();ctx.novo=r&&r.id;
+  }catch(e){ctx.err='Não consegui criar a ficha. Tente de novo.'}
+  ctx.busy=false;render();
+}
+async function mApagar(id){
+  try{await rpc('sdo_m_apagar',{p_senha:ctx.senha,p_id:id});await mRefresh()}catch(e){}
+  if(sh.id===id){sh.id=null;sh.S=null}
+  view='mesa';render();
+}
+
+/* ---------- jogador ---------- */
+async function pollJogador(){
+  if(document.hidden||sh.saving||sh.dirty.size||!ctx.token) return;
+  try{
+    var r=await rpc('sdo_ler',{p_token:ctx.token});
+    if(!ctx.online){ctx.online=true;setStatus('salvo','ok')}
+    onRemote('me',r.dados);
+  }catch(e){
+    if(/nao_encontrada/.test(e.msg||'')){view='erro';ctx.err='Essa ficha não existe mais. Peça um link novo ao mestre.';render()}
+    else{ctx.online=false;setStatus('sem conexão','bad')}
+  }
+}
+async function bootJogador(){
+  try{
+    var r=await rpc('sdo_ler',{p_token:ctx.token});
+    LSset('sdo_tok',ctx.token);
+    openSheet('me',r.dados,function(patch){return rpc('sdo_salvar',{p_token:ctx.token,p_patch:patch})});
+    startPoll(pollJogador,10000);
+  }catch(e){
+    view='erro';
+    ctx.err=/nao_encontrada/.test(e.msg||'')?'Esse link não abriu nenhuma ficha. Peça um link novo ao mestre.':'Não consegui falar com o servidor agora. Tente de novo em instantes.';
+    LSdel('sdo_tok');
+    render();
+  }
+}
+var pollT=null;
+function startPoll(fn,ms){if(pollT) clearInterval(pollT);pollT=setInterval(fn,ms)}
+
+/* ---------- raiz ---------- */
+function topbar(){
+  var back=(view==='sheet'&&ctx.mode==='mestre')?h('button',{type:'button',class:'btn ghost',onclick:closeSheet},'← Mesa'):null;
+  return h('header',{class:'top'},h('div',{class:'top-in'},back,
+    h('div',{class:'brand'},h('b',{},'Sessão das Oito'),h('span',{},ctx.mode==='mestre'?'Visão do mestre':'Sua ficha')),
+    h('span',{id:'status',class:'status'},view==='sheet'?'salvo':'')));
+}
+function render(){
+  var y=window.scrollY;
+  document.body.setAttribute('data-char',(view==='sheet'&&sh.S&&sh.S.tema)?sh.S.tema:'neutro');
+  var main;
+  if(view==='loading') main=h('div',{class:'wrap'},h('div',{class:'card empty'},h('p',{},'Abrindo a ficha…'),ctx.slow?h('p',{class:'muted'},'Está demorando mais que o normal. Confira sua conexão, a ficha abre assim que o servidor responder.'):null));
+  else if(view==='erro') main=h('div',{class:'wrap'},alertBox('Não deu pra abrir',ctx.err));
+  else if(view==='inicio') main=h('div',{class:'wrap'},h('section',{class:'card'},h('h1',{},'Fichas da Sessão das Oito'),
+    h('p',{class:'muted',style:'margin-top:8px'},'Abra o link pessoal que o mestre mandou pra você. Sem esse link a ficha não abre.'),
+    h('a',{href:'?mestre',class:'cap'},'Sou o mestre')));
+  else if(view==='login') main=viewLogin();
+  else if(view==='sheet'&&sh.S) main=viewSheet();
+  else if(view==='atividade') main=viewAtividade();
+  else main=viewMesa();
+  app.replaceChildren(topbar(),main);
+  window.scrollTo(0,y);
+}
+
+/* ---------- início ---------- */
+function boot(){
+  var slowT=setTimeout(function(){if(view==='loading'){ctx.slow=true;render()}},10000);
+  try{client()}catch(e){clearTimeout(slowT);view='erro';ctx.err='Não consegui carregar a conexão com o banco (supabase.js). Confira se o arquivo está no site.';render();return}
+  if(params.has('mestre')||location.hash==='#mestre'){
+    ctx.mode='mestre';
+    var pw=LSget('sdo_mk');
+    if(pw) mLogin(pw,true,true).then(function(){clearTimeout(slowT)}); else{clearTimeout(slowT);view='login';render()}
+    return;
+  }
+  var tok=params.get('j')||LSget('sdo_tok');
+  if(tok){ctx.mode='jogador';ctx.token=tok;bootJogador().then(function(){clearTimeout(slowT)});return}
+  clearTimeout(slowT);view='inicio';render();
+}
+render();
+boot();
+})();
+</script>
+</body>
+</html>
