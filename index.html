@@ -373,6 +373,8 @@ button,input,textarea{font:inherit;color:inherit}
 </section>
 
 <div class="sheet-wrap" id="sw" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div></div>
+<script>window.SB_CONFIG={url:"https://ywcmprththajbptzxiep.supabase.co",key:"sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb"};</script>
+<script src="supabase.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1110,6 +1112,7 @@ function openMenu(){
     '<div class="mlist">'+
       '<button class="btn" type="button" data-m="fit">Enquadrar tudo</button>'+
       (master?'<button class="btn" type="button" data-m="forget">Esquecer a senha neste aparelho</button>':'<button class="btn" type="button" data-m="copy">Copiar código do quadro</button>')+
+      (mesa&&M.sbMode?'<button class="btn" type="button" data-m="starter">Adicionar os cartões iniciais</button><button class="btn" type="button" data-m="who">Mudar meu nome ou o código da mesa</button>':'')+
       (mesa?'':(master?'<button class="btn danger" type="button" data-m="reset">Restaurar quadro original</button>':'<button class="btn danger" type="button" data-m="drop">Apagar este quadro</button>'))+
     '</div>'+
     (mesa?'<p class="help">Este quadro é de todos da mesa. Cada mudança aparece na hora para os outros, e quem mexe por último vence. O código copiado é uma cópia sua: dá pra colar como quadro pessoal na tela inicial.</p>':'')+
@@ -1127,6 +1130,11 @@ function openMenu(){
       const a=m.dataset.m;
       if(a==='fit'){ closeSheet(); fitAll(true); }
       else if(a==='copy') openExport();
+      else if(a==='starter'){ closeSheet(); mesaStarter(); }
+      else if(a==='who'){
+        const u=LS.get(K_ME)||{}; u.ask=true; LS.set(K_ME,u);
+        closeSheet(); S.route=null; apply('mesa');
+      }
       else if(a==='forget'){ const u=LS.get(K_UI)||{}; delete u.mk; LS.set(K_UI,u); toast('A senha não fica mais guardada neste aparelho'); }
       else if(a==='reset'||a==='drop'){
         if(!m.dataset.armed){
@@ -1158,6 +1166,227 @@ function toggleSecret(){
   const u=LS.get(K_UI)||{}; u.secret=S.secretOpen; LS.set(K_UI,u);
   paintVeil();
   S.board.cards.forEach(renderCard); S.board.links.forEach(drawLink); applyState(); renderDock();
+}
+
+/* ---------- versão do GitHub: o mesmo quadro da mesa, guardado no Supabase ---------- */
+/* Faz o Supabase "falar" do jeito que o quadro da mesa já entende (banco, usuário e sala). */
+const K_ME='qso:me';
+const SB_COLORS=['#e07a5f','#5fa7a0','#9b7bc4','#e0a040','#6fa8dc','#d9719a','#8fbf6a','#c9b458'];
+function sbColor(id){ let h=0; for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))|0; return SB_COLORS[Math.abs(h)%SB_COLORS.length]; }
+function sbMapErr(e){
+  const code=e&&e.code,msg=String((e&&e.message)||e||'');
+  if(code==='PGRST205'||code==='42P01'||/schema cache|does not exist/i.test(msg)) return {code:'setup',message:msg};
+  if(code==='42501'||/row-level security/i.test(msg)) return {code:'invalid_argument',message:msg};
+  if(code==='PGRST301'||code==='401'||/invalid api key|jwt/i.test(msg)) return {code:'not_granted',message:msg};
+  return {code:'unavailable',message:msg};
+}
+function makeSb(cfg,ident){
+  const sb=window.supabase.createClient(cfg.url,cfg.key,{
+    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
+    realtime:{params:{eventsPerSecond:30}}
+  });
+  const code=ident.code,chans=[],people=new Map(),timers=[];
+  const me={id:ident.id,name:ident.name,color:sbColor(ident.id),peer:'p_'+uid()};
+  people.set(me.id,{name:me.name,color:me.color});
+
+  /* ----- banco: uma linha por cartão ou fio, no formato {room, id, data} ----- */
+  const T=n=>n.replace(/-/g,'_');
+  const mkdoc=(id,data)=>({id:id,exists:true,data:()=>data,metadata:{fromCache:false,hasPendingWrites:false}});
+  const curs={};
+  function collection(name){
+    const t=T(name),cur=curs[t]||(curs[t]=new Map());
+    const rowKey={room:code};
+    return {
+      path:name,
+      doc(id){
+        return {
+          id:id,path:name+'/'+id,
+          async get(){
+            const r=await sb.from(t).select('data').eq('room',code).eq('id',id).maybeSingle();
+            if(r.error) throw sbMapErr(r.error);
+            return r.data?mkdoc(id,r.data.data):{id:id,exists:false,data:()=>undefined,metadata:{fromCache:false,hasPendingWrites:false}};
+          },
+          async set(data){
+            const r=await sb.from(t).upsert({room:code,id:id,data:data,updated_at:new Date().toISOString()},{onConflict:'room,id'});
+            if(r.error) throw sbMapErr(r.error);
+            cur.set(id,JSON.parse(JSON.stringify(data)));
+          },
+          async update(part){
+            const old=cur.get(id);
+            if(old===undefined) throw {code:'invalid_argument',message:'documento não existe'};
+            const merged=Object.assign({},old,JSON.parse(JSON.stringify(part)));
+            const r=await sb.from(t).upsert({room:code,id:id,data:merged,updated_at:new Date().toISOString()},{onConflict:'room,id'});
+            if(r.error) throw sbMapErr(r.error);
+            cur.set(id,merged);
+          },
+          async delete(){
+            const r=await sb.from(t).delete().eq('room',code).eq('id',id);
+            if(r.error) throw sbMapErr(r.error);
+            cur.delete(id);
+          }
+        };
+      },
+      async get(){
+        const r=await sb.from(t).select('id,data').eq('room',code);
+        if(r.error) throw sbMapErr(r.error);
+        const docs=(r.data||[]).map(x=>mkdoc(x.id,x.data));
+        return {docs:docs,size:docs.length};
+      },
+      onSnapshot(next,err){
+        let alive=true,first=true,busy=false,okOnce=false;
+        cur.clear();
+        const emit=changes=>{
+          if(!alive||(!changes.length&&!first)) return;
+          const docs=Array.from(cur.entries()).map(e=>mkdoc(e[0],e[1]));
+          first=false;
+          next({docs:docs,size:docs.length,empty:!docs.length,docChanges:()=>changes,metadata:{fromCache:false,hasPendingWrites:false}});
+        };
+        async function resync(){
+          if(!alive||busy) return; busy=true;
+          try{
+            const r=await sb.from(t).select('id,data').eq('room',code);
+            if(!alive) return;
+            if(r.error){
+              const e=sbMapErr(r.error);
+              if(!okOnce&&(e.code==='setup'||e.code==='not_granted')&&err){ alive=false; err(e); }
+              return;
+            }
+            okOnce=true;
+            const seen=new Set(),changes=[];
+            (r.data||[]).forEach(row=>{
+              seen.add(row.id);
+              const old=cur.get(row.id);
+              if(old===undefined){ cur.set(row.id,row.data); changes.push({type:'added',doc:mkdoc(row.id,row.data)}); }
+              else if(canon(old)!==canon(row.data)){ cur.set(row.id,row.data); changes.push({type:'modified',doc:mkdoc(row.id,row.data)}); }
+            });
+            Array.from(cur.keys()).forEach(id=>{
+              if(!seen.has(id)){ const old=cur.get(id); cur.delete(id); changes.push({type:'removed',doc:mkdoc(id,old)}); }
+            });
+            emit(changes);
+          }catch(e){ /* sem rede agora: tenta de novo no próximo ciclo */ }
+          finally{ busy=false; }
+        }
+        const ch=sb.channel('db-'+t+'-'+code+'-'+me.peer).on('postgres_changes',{event:'*',schema:'public',table:t},p=>{
+          if(!alive) return;
+          if(p.eventType==='DELETE'){
+            const o=p.old||{};
+            if(!o.id||(o.room&&o.room!==code)||!cur.has(o.id)) return;
+            const old=cur.get(o.id); cur.delete(o.id);
+            emit([{type:'removed',doc:mkdoc(o.id,old)}]);
+          } else {
+            const n=p.new; if(!n||n.room!==code) return;
+            const had=cur.has(n.id);
+            if(had&&canon(cur.get(n.id))===canon(n.data)) return;
+            cur.set(n.id,n.data);
+            emit([{type:had?'modified':'added',doc:mkdoc(n.id,n.data)}]);
+          }
+        }).subscribe(st=>{ if(st==='SUBSCRIBED') resync(); });
+        chans.push(ch);
+        resync();
+        const tm=setInterval(resync,15000); timers.push(tm);
+        const onVis=()=>{ if(!document.hidden) resync(); };
+        document.addEventListener('visibilitychange',onVis);
+        return ()=>{ alive=false; clearInterval(tm); document.removeEventListener('visibilitychange',onVis); try{ sb.removeChannel(ch); }catch(e){} };
+      }
+    };
+  }
+  const db={collection:collection,doc:p=>{ const i=p.lastIndexOf('/'); return collection(p.slice(0,i)).doc(p.slice(i+1)); }};
+
+  /* ----- usuário: nome que a pessoa escolheu ----- */
+  const user={
+    id:async()=>me.id, can:async()=>true, isOwner:async()=>false, canEdit:async()=>false,
+    me:async()=>({id:me.id,name:me.name,color:me.color,avatarUrl:'',email:null,isOwner:false,canEdit:false}),
+    profiles:async ids=>{
+      const o={};
+      [].concat(ids).forEach(id=>{ const p=people.get(id)||{}; o[id]={id:id,name:p.name||'',color:p.color||'#a7b4ad',avatarUrl:'',email:null,isMe:id===me.id,guest:false}; });
+      return o;
+    }
+  };
+
+  /* ----- sala: quem está aqui, o que selecionou e o cartão que está arrastando ----- */
+  const rch=sb.channel('sala-'+code,{config:{presence:{key:me.peer},broadcast:{self:false}}});
+  chans.push(rch);
+  const pstate={},drags=new Map(),hs=new Set();
+  let joined=false,trackT=0,dragT=0,lastDrag=0,pendingDrag=null;
+  function build(){
+    const ps=rch.presenceState(),out=[];
+    Object.keys(ps).forEach(key=>{
+      const metas=ps[key],m=metas&&metas[metas.length-1]; if(!m) return;
+      const isMe=key===me.peer;
+      if(m.uid) people.set(m.uid,{name:String(m.name||'').slice(0,30),color:m.color});
+      const pr=Object.assign({},m.pres||{}),d=drags.get(key);
+      if(d&&!isMe&&d.drag) pr.drag=d.drag;
+      out.push({peer:key,by:m.uid||null,isMe:isMe,sameTab:isMe,kind:'viewer',guest:false,presence:pr,updatedAt:Date.now()});
+    });
+    return out;
+  }
+  const notify=()=>{ const p=build(); hs.forEach(h=>h({peers:p,joined:[],left:[],updated:[]})); };
+  rch.on('presence',{event:'sync'},notify);
+  rch.on('broadcast',{event:'drag'},m=>{
+    const pl=m&&m.payload; if(!pl||!pl.peer||pl.peer===me.peer) return;
+    drags.set(pl.peer,{drag:pl.drag||null}); notify();
+  });
+  rch.subscribe(st=>{ if(st==='SUBSCRIBED'){ joined=true; doTrack(); } });
+  function doTrack(){ if(!joined) return; try{ rch.track({uid:me.id,name:me.name,color:me.color,pres:pstate}); }catch(e){} }
+  function sendDrag(){
+    dragT=0; if(!joined||pendingDrag===undefined) return;
+    lastDrag=Date.now();
+    try{ rch.send({type:'broadcast',event:'drag',payload:{peer:me.peer,drag:pendingDrag}}); }catch(e){}
+    pendingDrag=undefined;
+  }
+  const room={
+    async presence(patch){
+      let touched=false;
+      Object.keys(patch).forEach(k=>{
+        if(k==='drag'){
+          pendingDrag=patch.drag===null?null:patch.drag;
+          const wait=Math.max(0,60-(Date.now()-lastDrag));
+          if(patch.drag===null){ clearTimeout(dragT); sendDrag(); } else if(!dragT) dragT=setTimeout(sendDrag,wait);
+          return;
+        }
+        touched=true;
+        if(patch[k]===null) delete pstate[k]; else pstate[k]=patch[k];
+      });
+      if(touched){ clearTimeout(trackT); trackT=setTimeout(doTrack,120); }
+    },
+    onPeers(h){ hs.add(h); setTimeout(()=>{ if(hs.has(h)) h({peers:build(),joined:[],left:[],updated:[]}); },0); return ()=>{ hs.delete(h); }; },
+    peers:build,emit:async()=>{},on:()=>()=>{},connected:()=>joined,onConnection:()=>()=>{}
+  };
+  function close(){
+    timers.forEach(clearInterval); clearTimeout(trackT); clearTimeout(dragT);
+    chans.forEach(c=>{ try{ sb.removeChannel(c); }catch(e){} });
+  }
+  return {db:db,user:user,room:room,close:close};
+}
+
+/* pergunta o nome e o código da mesa (uma vez por aparelho) */
+function askIdentity(){
+  return new Promise(res=>{
+    const me=LS.get(K_ME);
+    if(me&&me.name&&me.code&&me.id&&!me.ask){ res(me); return; }
+    let done=false;
+    const finish=v=>{ if(done) return; done=true; res(v); };
+    openSheet('<div class="sh-h"><h2>Entrar na mesa</h2>'+closeBtn()+'</div>'+
+      '<p class="help">O seu nome aparece pros outros quando você mexe num cartão. O código é o que o mestre combinou: só quem usa o mesmo código vê o mesmo quadro.</p>'+
+      fld('s-name','Seu nome','<input id="s-name" type="text" maxlength="30" autocomplete="off" placeholder="Ex.: Rita, ou o nome do personagem" value="'+esc((me&&me.name)||'')+'">')+
+      fld('s-code','Código da mesa','<input id="s-code" type="text" maxlength="24" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pergunte ao mestre" value="'+esc((me&&me.code)||'')+'"><span class="help">Só letras e números.</span>')+
+      '<span class="err" id="s-err"></span>'+
+      '<div class="sh-f"><span></span><button class="btn pri" type="button" id="s-go">Entrar</button></div>',
+    {
+      onClose:()=>finish(null),
+      key:e=>{ if(e.key==='Enter'&&e.target.tagName==='INPUT'){ e.preventDefault(); const b=$('#s-go'); if(b) b.click(); } },
+      click:e=>{
+        if(!e.target.closest('#s-go')) return;
+        const name=$('#s-name').value.trim().slice(0,30);
+        const cd=$('#s-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,24);
+        if(!name){ $('#s-err').textContent='Escreva o seu nome.'; return; }
+        if(cd.length<2){ $('#s-err').textContent='O código precisa ter pelo menos 2 letras ou números.'; return; }
+        const v={id:(me&&me.id)||('u_'+uid()+uid()),name:name,code:cd};
+        LS.set(K_ME,v); finish(v); closeSheet();
+      }
+    });
+    setTimeout(()=>{ const f=$('#s-name'); if(f) f.focus(); },50);
+  });
 }
 
 /* ---------- quadro da mesa: um só quadro, ao vivo, para todos ---------- */
@@ -1212,6 +1441,8 @@ async function mesaBoot(){
         try{ M.uid=await M.user.id(); }catch(e){}
         try{ M.ro=(await M.user.can('data.write'))===false; }catch(e){}
       }
+    } else if(window.SB_CONFIG&&window.supabase&&window.supabase.createClient){
+      M.sbMode=true;   // versão do GitHub: banco no Supabase
     }
   }catch(e){ M.db=null; }
   M.booted=true;
@@ -1220,13 +1451,16 @@ async function mesaBoot(){
 function renderTDoor(){
   const meta=$('#tMeta'),hint=$('#tHint'),btn=$('#tOpen'); if(!meta) return;
   if(!M.booted){ meta.textContent='Conectando…'; hint.textContent=''; btn.disabled=true; return; }
-  if(!M.db){
+  if(!M.db&&!M.sbMode){
     meta.textContent='Indisponível aqui';
     hint.textContent='O quadro da mesa só funciona aberto pelo Claude, com a conta entrada. Seus quadros pessoais, abaixo, funcionam em qualquer lugar.';
     btn.disabled=true; return;
   }
   btn.disabled=false;
-  if(M.ro){
+  if(M.sbMode){
+    meta.textContent='Todo mundo da mesa mexe junto';
+    hint.textContent='Cada mudança aparece na hora pros outros. Você vai precisar do código da mesa que o mestre combinou.';
+  } else if(M.ro){
     meta.textContent='Você pode olhar, não mexer';
     hint.textContent='Pra mexer junto, quem compartilhou o link precisa te dar acesso de Colaborador (Contributor) no menu Compartilhar.';
   } else {
@@ -1239,7 +1473,14 @@ function renderTDoor(){
 async function openMesa(){
   if(!M.booted) await M.boot;
   if(S.route!=='mesa') return;
-  if(!M.db){ go(S.playerOnly?'jogador':''); return; }
+  if(!M.db&&!M.sbMode){ go(S.playerOnly?'jogador':''); return; }
+  if(M.sbMode){
+    const ident=await askIdentity();
+    if(S.route!=='mesa') return;
+    if(!ident){ go(S.playerOnly?'jogador':''); return; }
+    const bk=makeSb(window.SB_CONFIG,ident);
+    M.db=bk.db; M.user=bk.user; M.room=bk.room; M.sbClose=bk.close; M.uid=ident.id; M.ro=false; M.code=ident.code;
+  }
   const b={id:'mesa',name:'Quadro da mesa',mode:'mesa',cards:[],links:[],zones:[],updated:0};
   M.known={c:new Map(),l:new Map()}; M.held.clear(); M.loaded=false; M.fitted=false; M.ready={c:false,l:false};
   M.peers=[]; M.sig=''; S.ghost={};
@@ -1252,7 +1493,8 @@ function mesaLeave(){
   M.live=false; clearTimeout(M.timer); clearTimeout(M.dragT);
   M.unsubs.forEach(u=>{ try{ u(); }catch(e){} }); M.unsubs=[];
   if(M.unPeers){ try{ M.unPeers(); }catch(e){} M.unPeers=null; }
-  if(M.room){ try{ M.room.presence({at:null,sel:null,drag:null}).catch(()=>{}); }catch(e){} }
+  if(M.sbMode){ try{ if(M.sbClose) M.sbClose(); }catch(e){} M.sbClose=null; M.room=null; }
+  else if(M.room){ try{ M.room.presence({at:null,sel:null,drag:null}).catch(()=>{}); }catch(e){} }
   M.peers=[]; M.sig=''; S.ghost={};
   const pe=$('#bPeers'); pe.hidden=true; pe.textContent='';
   note('');
@@ -1261,7 +1503,7 @@ function note(msg){ const n=$('#liveNote'); n.textContent=msg||''; n.hidden=!msg
 function setLive(txt){ $('#bMode').textContent='Mesa · '+txt+(M.ro?' · só leitura':''); }
 function refreshNote(){
   if(!isMesa()||!M.live||!M.loaded) return;
-  note(S.board.cards.length?'':(M.ro?'O quadro ainda está vazio.':'O quadro da mesa está vazio. Toque em Novo cartão pra começar.'));
+  note(S.board.cards.length?'':(M.ro?'O quadro ainda está vazio.':(M.sbMode?'O quadro da mesa está vazio. Toque em Novo cartão, ou abra o menu e adicione os cartões iniciais.':'O quadro da mesa está vazio. Toque em Novo cartão pra começar.')));
 }
 
 function mesaConnect(){
@@ -1294,7 +1536,9 @@ function mesaLoaded(){
 function mesaErr(e){
   M.live=false; clearTimeout(M.timer);
   const c=e&&e.code;
-  if(c==='revoked'||c==='not_granted'){ M.ro=true; setLive('sem acesso'); note('Seu acesso à mesa mudou. Volte e abra de novo.'); }
+  if(c==='setup'){ setLive('sem tabelas'); note('As tabelas do quadro ainda não existem no Supabase. Falta rodar o texto do SQL.'); }
+  else if(c==='not_granted'&&M.sbMode){ setLive('chave recusada'); note('O Supabase recusou a chave. Confira a chave pública no código do site.'); }
+  else if(c==='revoked'||c==='not_granted'){ M.ro=true; setLive('sem acesso'); note('Seu acesso à mesa mudou. Volte e abra de novo.'); }
   else { setLive('sem sinal'); note('A conexão com a mesa caiu. Volte e abra de novo.'); }
   if(isMesa()) renderDock();
 }
@@ -1452,6 +1696,30 @@ function mesaRestore(gone){
   gone.cards.forEach(c=>{ if(!cardById(c.id)){ S.board.cards.push(c); renderCard(c); } });
   gone.links.forEach(l=>{ if(cardById(l.a)&&cardById(l.b)&&!S.board.links.some(x=>x.id===l.id)){ S.board.links.push(l); drawLink(l); } });
   applyState(); renderDock(); scheduleSave(true);
+}
+
+/* cartões iniciais (o que a cidade já sabe), com ids fixos para não duplicar */
+function mesaStarter(){
+  if(!isMesa()||M.ro) return;
+  const cards=[
+    ['rex','lugar','Cine Rex','Abriu faz uma semana','Quem trouxe foi uma empresa estrangeira que ninguém conhece direito.','',340,0],
+    ['emp','grupo','Empresa estrangeira','Ninguém conhece direito','Trouxe o cinema pra cidade.','',700,0],
+    ['mor','grupo','Quem foi à estreia','','Anda com o olhar parado e repete falas de filme.','Moradores',340,270],
+    ['fim','hora','Fim da tarde','Todo dia','Vizinhos saem de casa e caminham na mesma direção.','',700,300]];
+  let n=0;
+  cards.forEach(a=>{
+    if(cardById(a[0])) return;
+    const c={id:a[0],type:a[1],title:a[2],sub:a[3],body:a[4],hid:'',foot:'',tag:a[5],rows:[],x:a[6],y:a[7]};
+    S.board.cards.push(c); renderCard(c); n++;
+  });
+  [['emp','rex','trouxe'],['mor','rex','foram à estreia']].forEach(a=>{
+    const id=a[0]+'~'+a[1];
+    if(S.board.links.some(l=>l.id===id)||!cardById(a[0])||!cardById(a[1])) return;
+    const l={id:id,a:a[0],b:a[1],label:a[2],kind:'certeza'}; S.board.links.push(l); drawLink(l);
+  });
+  applyState(); scheduleSave(true); refreshNote();
+  toast(n?'Cartões iniciais adicionados':'Os cartões iniciais já estão no quadro');
+  if(n) fitAll(true);
 }
 
 /* ---------- quem está na mesa (presença) ---------- */
@@ -1807,6 +2075,6 @@ S.playerOnly=hashNow()==='jogador';
 M.boot=mesaBoot();
 apply(hashNow());
 })();
-</script>
 
+</script>
 </html>
