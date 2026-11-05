@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Teste da conexão</title>
+<style>
+  :root{--bg:#14110e;--card:#1f1a15;--line:#3a3128;--tx:#efe6d6;--mut:#a89a85;--ok:#8fbf6a;--bad:#e07a5f;--warn:#e0a040;--acc:#efb53f}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:20px 16px 48px}
+  main{max-width:560px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  p.sub{color:var(--mut);margin:0 0 20px;font-size:14px}
+  ol{list-style:none;margin:0;padding:0}
+  li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:28px 1fr;gap:4px 8px}
+  .ic{font-weight:700;text-align:center}
+  .ic.run{color:var(--acc)} .ic.ok{color:var(--ok)} .ic.bad{color:var(--bad)} .ic.warn{color:var(--warn)} .ic.wait{color:var(--mut)}
+  .nm{font-weight:600}
+  .dt{grid-column:2;color:var(--mut);font-size:14px;word-break:break-word}
+  .dt b{color:var(--tx)}
+  #ver{margin-top:18px;border-radius:10px;padding:14px 16px;border:1px solid var(--line);background:var(--card);font-size:16px}
+  #ver.ok{border-color:var(--ok)} #ver.bad{border-color:var(--bad)}
+  #ver h2{font-size:18px;margin:0 0 6px}
+  #ver ul{margin:6px 0 0;padding-left:20px}
+  .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  button{font:inherit;background:var(--acc);color:#1b1409;border:0;border-radius:8px;padding:10px 16px;font-weight:600}
+  button.sec{background:transparent;color:var(--tx);border:1px solid var(--line)}
+  button:disabled{opacity:.5}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Teste da conexão</h1>
+  <p class="sub">Esta página confere, uma etapa por vez, se o quadro da mesa consegue falar com o Supabase. Ela grava uma linha de teste e apaga logo depois.</p>
+  <ol id="steps"></ol>
+  <div id="ver" hidden></div>
+  <div class="row">
+    <button id="again" type="button" disabled>Testar de novo</button>
+    <button id="copy" type="button" class="sec" disabled>Copiar resultado</button>
+    <a class="sec" href="./" style="align-self:center">Voltar ao quadro</a>
+  </div>
+</main>
+
+<script>window.SB_CONFIG={url:"https://ywcmprththajbptzxiep.supabase.co",key:"sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb"};</script>
+<script src="supabase.js"></script>
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const ROOM='__teste__';
+  const NAMES=['Biblioteca do Supabase','Endereço e chave','Tabela mesa_cards','Tabela mesa_links','Gravar e ler uma linha','Tempo real (avisos de mudança)','Presença (quem está na mesa)','Limpeza da linha de teste'];
+  let report=[];
+
+  function build(){
+    $('#steps').innerHTML=NAMES.map((n,i)=>'<li id="s'+i+'"><span class="ic wait">·</span><span class="nm">'+n+'</span><span class="dt"></span></li>').join('');
+    $('#ver').hidden=true; $('#ver').className='';
+    report=[];
+  }
+  function set(i,st,txt){
+    const li=$('#s'+i); if(!li) return;
+    const ic=li.querySelector('.ic'); ic.className='ic '+st;
+    ic.textContent=st==='ok'?'✓':st==='bad'?'✗':st==='warn'?'!':st==='run'?'…':'·';
+    li.querySelector('.dt').textContent=txt||'';
+    if(st!=='run'&&st!=='wait') report[i]={st:st,txt:txt||'',name:NAMES[i]};
+  }
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  function withTimeout(p,ms,label){
+    return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado: '+label)),ms))]);
+  }
+
+  /* traduz o erro do Supabase pro que falta fazer */
+  function explain(e,tabela){
+    const code=e&&e.code,msg=String((e&&e.message)||e||''),status=e&&e.status;
+    if(code==='PGRST205'||code==='42P01'||/schema cache|does not exist|Could not find the table/i.test(msg))
+      return {kind:'tabela',txt:'A tabela '+tabela+' não existe. Falta rodar o SQL no Supabase (SQL Editor).'};
+    if(code==='42501'||/row-level security|permission denied/i.test(msg))
+      return {kind:'permissao',txt:'O Supabase bloqueou por permissão (RLS). A tabela existe, mas faltam as políticas que deixam ler e gravar.'};
+    if(code==='PGRST301'||code==='401'||status===401||status===403||/invalid api key|jwt|apikey/i.test(msg))
+      return {kind:'chave',txt:'O Supabase recusou a chave. Confira se a chave publishable do site é a mesma do painel.'};
+    if(/failed to fetch|networkerror|load failed|tempo esgotado/i.test(msg))
+      return {kind:'rede',txt:'Não consegui falar com o endereço. O projeto pode estar pausado (painel do Supabase, botão Restore) ou o endereço está errado.'};
+    return {kind:'outro',txt:'Erro: '+msg+(code?' ('+code+')':'')};
+  }
+
+  async function lerTabela(sb,tabela){
+    const r=await withTimeout(sb.from(tabela).select('id').eq('room',ROOM),12000,tabela);
+    return r;
+  }
+
+  function aguardarCanal(ch,ms){
+    return new Promise(res=>{
+      let feito=false;
+      const t=setTimeout(()=>{ if(!feito){ feito=true; res('TIMED_OUT'); } },ms);
+      ch.subscribe(st=>{
+        if(feito) return;
+        if(st==='SUBSCRIBED'||st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){ feito=true; clearTimeout(t); res(st); }
+      });
+    });
+  }
+
+  async function run(){
+    $('#again').disabled=true; $('#copy').disabled=true;
+    build();
+    const fails=[]; // mensagens do veredito
+    let sb=null,id='teste-'+Date.now().toString(36),limpar=false;
+    const cfg=window.SB_CONFIG;
+
+    /* 0 biblioteca */
+    set(0,'run');
+    if(!window.supabase||!window.supabase.createClient){
+      set(0,'bad','O arquivo supabase.js não carregou. Confira se ele está no repositório, ao lado do index.html.');
+      fails.push('A biblioteca do Supabase não carregou (arquivo supabase.js).');
+      return fim(fails);
+    }
+    set(0,'ok','Carregou.');
+
+    /* 1 endereço e chave */
+    set(1,'run');
+    try{
+      sb=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:30}}});
+      set(1,'ok','Endereço: '+cfg.url.replace('https://','')+' | chave começa com '+cfg.key.slice(0,16)+'…');
+    }catch(e){
+      set(1,'bad',explain(e,'').txt); fails.push('Não consegui criar a conexão: '+explain(e,'').txt); return fim(fails);
+    }
+
+    /* 2 e 3 tabelas */
+    let tabelasOk=true;
+    for(const [i,tab] of [[2,'mesa_cards'],[3,'mesa_links']]){
+      set(i,'run');
+      try{
+        const r=await lerTabela(sb,tab);
+        if(r.error) throw r.error;
+        set(i,'ok','Existe e dá pra ler.');
+      }catch(e){
+        const x=explain(e,tab); tabelasOk=false;
+        set(i,'bad',x.txt); fails.push(x.txt);
+        if(x.kind==='rede'||x.kind==='chave'){
+          /* sem rede ou chave ruim, o resto vai falhar igual: marca e sai */
+          for(let k=i+1;k<NAMES.length;k++) set(k,'wait','Pulado, porque a conexão falhou antes.');
+          return fim(fails);
+        }
+      }
+    }
+
+    /* 4 gravar e ler */
+    set(4,'run');
+    if(!tabelasOk){
+      set(4,'wait','Pulado, porque falta a tabela ou a permissão.');
+    }else{
+      try{
+        const w=await withTimeout(sb.from('mesa_cards').upsert({room:ROOM,id:id,data:{teste:true},updated_at:new Date().toISOString()},{onConflict:'room,id'}),12000,'gravar');
+        if(w.error) throw w.error;
+        limpar=true;
+        const r=await withTimeout(sb.from('mesa_cards').select('id,data').eq('room',ROOM).eq('id',id).maybeSingle(),12000,'ler');
+        if(r.error) throw r.error;
+        if(!r.data) throw new Error('Gravou, mas a leitura voltou vazia. Faltou a política de leitura (select).');
+        set(4,'ok','Gravou e leu de volta.');
+      }catch(e){
+        const x=explain(e,'mesa_cards'); set(4,'bad',x.txt); fails.push(x.txt);
+      }
+    }
+
+    /* 5 tempo real */
+    set(5,'run');
+    let rtOk=false;
+    try{
+      let recebeu=false;
+      const ch=sb.channel('teste-rt-'+id);
+      ch.on('postgres_changes',{event:'*',schema:'public',table:'mesa_cards'},p=>{
+        const n=(p&&p.new)||{}; const o=(p&&p.old)||{};
+        if(n.id===id||o.id===id||(n.room===ROOM)||(o.room===ROOM)) recebeu=true;
+      });
+      const st=await aguardarCanal(ch,10000);
+      if(st!=='SUBSCRIBED'){
+        set(5,'bad','O canal de tempo real não conectou ('+st+'). Pode ser rede bloqueando WebSocket ou o Realtime desligado no projeto.');
+        fails.push('O tempo real não conectou ('+st+').');
+      }else if(!tabelasOk){
+        set(5,'warn','Conectou, mas não deu pra testar o aviso de mudança sem a tabela.');
+      }else{
+        /* muda a linha e espera o aviso chegar */
+        await sb.from('mesa_cards').upsert({room:ROOM,id:id,data:{teste:true,n:2},updated_at:new Date().toISOString()},{onConflict:'room,id'});
+        limpar=true;
+        for(let k=0;k<30&&!recebeu;k++) await wait(200);
+        if(recebeu){ rtOk=true; set(5,'ok','Conectou e o aviso de mudança chegou.'); }
+        else{
+          set(5,'bad','Conectou, mas o aviso de mudança não chegou. A tabela mesa_cards não está ligada no Realtime. No Supabase: Database, Publications, supabase_realtime, e ligue mesa_cards e mesa_links (ou rode o SQL que liga).');
+          fails.push('O aviso de mudança em tempo real não chegou: ligar mesa_cards e mesa_links na publicação supabase_realtime.');
+        }
+      }
+      try{ await sb.removeChannel(ch); }catch(_){}
+    }catch(e){
+      const x=explain(e,'mesa_cards'); set(5,'bad',x.txt); fails.push(x.txt);
+    }
+
+    /* 6 presença */
+    set(6,'run');
+    try{
+      const ch=sb.channel('teste-pr-'+id,{config:{presence:{key:'t_'+id}}});
+      let viuEu=false;
+      ch.on('presence',{event:'sync'},()=>{ try{ if(ch.presenceState()['t_'+id]) viuEu=true; }catch(_){} });
+      const st=await aguardarCanal(ch,10000);
+      if(st!=='SUBSCRIBED'){
+        set(6,'bad','O canal de presença não conectou ('+st+').'); fails.push('A presença (quem está na mesa) não conectou ('+st+').');
+      }else{
+        await ch.track({teste:true});
+        for(let k=0;k<25&&!viuEu;k++) await wait(200);
+        if(viuEu) set(6,'ok','Funcionou.');
+        else{ set(6,'warn','Conectou, mas não vi a minha própria presença. O quadro funciona, só pode faltar a bolinha de quem está na mesa.'); }
+      }
+      try{ await sb.removeChannel(ch); }catch(_){}
+    }catch(e){
+      set(6,'warn','Não deu pra testar: '+explain(e,'').txt);
+    }
+
+    /* 7 limpeza */
+    set(7,'run');
+    if(limpar){
+      try{
+        const d=await withTimeout(sb.from('mesa_cards').delete().eq('room',ROOM),12000,'apagar');
+        if(d.error) throw d.error;
+        set(7,'ok','Linha de teste apagada.');
+      }catch(e){
+        set(7,'warn','Não consegui apagar a linha de teste ('+explain(e,'mesa_cards').txt+'). Ela fica numa mesa com o código __teste__ e não atrapalha ninguém.');
+      }
+    }else set(7,'wait','Nada pra apagar.');
+
+    fim(fails);
+  }
+
+  function fim(fails){
+    fails=Array.from(new Set(fails));
+    const v=$('#ver'); v.hidden=false;
+    if(!fails.length){
+      v.className='ok';
+      v.innerHTML='<h2>Tudo certo</h2><div>O quadro da mesa consegue gravar, ler e receber mudanças ao vivo. Pode abrir o quadro e chamar o pessoal.</div>';
+    }else{
+      v.className='bad';
+      v.innerHTML='<h2>Falta ajeitar</h2><ul>'+fails.map(f=>'<li>'+f.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</li>').join('')+'</ul>';
+    }
+    $('#again').disabled=false; $('#copy').disabled=false;
+    window.__veredito={ok:!fails.length,fails:fails,report:report};
+  }
+
+  $('#again').onclick=run;
+  $('#copy').onclick=async()=>{
+    const linhas=report.filter(Boolean).map(r=>(r.st==='ok'?'[ok] ':r.st==='bad'?'[ERRO] ':r.st==='warn'?'[aviso] ':'[ ] ')+r.name+': '+r.txt);
+    const t='Teste da conexão ('+new Date().toLocaleString('pt-BR')+')\n'+linhas.join('\n');
+    try{ await navigator.clipboard.writeText(t); $('#copy').textContent='Copiado'; setTimeout(()=>{ $('#copy').textContent='Copiar resultado'; },1800); }
+    catch(_){ prompt('Copie o texto:',t); }
+  };
+
+  run();
+})();
+</script>
+</body>
+</html>
