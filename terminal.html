@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#171512">
+<title>Terminal VP-7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Papel zebrado de impressora de linha sobre a mesa escura, com o teclado escuro embaixo. Toda linha tem 24px pra o texto cair certinho nas faixas verdes. */
+:root{
+  --desk:#171512; --paper:#eef1e2; --band:#dce6cb; --ink:#1d2219; --dim:#5d6652; --perf:#b9c2a6;
+  --key:#24211d; --key-line:#4a443b; --key-tx:#e9dfc8; --amber:#f0b542; --ok:#7fbf6a; --bad:#d9573a;
+  --mono:"Courier Prime","Courier New",Courier,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--desk)}
+body{margin:0;background:var(--desk);color:var(--key-tx);font:15px/24px var(--mono);-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+#app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;height:36px;box-sizing:content-box;padding:env(safe-area-inset-top,0px) 12px 0;background:var(--desk);font:700 12px/36px var(--mono);letter-spacing:.16em;color:#a99f8a;text-transform:uppercase}
+.led{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.led.off{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+.led.busy{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+.paper{position:relative;flex:1;padding:24px 36px 168px;color:var(--ink);background:repeating-linear-gradient(to bottom,var(--paper) 0 72px,var(--band) 72px 144px);box-shadow:0 0 0 1px #0006}
+.paper::before,.paper::after{content:"";position:absolute;top:0;bottom:0;width:24px;background:radial-gradient(circle at 12px 12px,var(--desk) 0 4.5px,transparent 5.5px) 0 0/24px 36px repeat-y}
+.paper::before{left:0;border-right:1px dashed var(--perf)}
+.paper::after{right:0;border-left:1px dashed var(--perf)}
+#out{font-size:15px;line-height:24px}
+.ln{display:block;min-height:24px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}
+.ln.dim{color:var(--dim)}
+.ln.bold{font-weight:700}
+.ln.alert{font-weight:700;color:#8a2412}
+button.ln{width:100%;padding:0;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer;text-decoration:underline dotted}
+button.ln:hover,button.ln:focus-visible{background:#1d221924;outline:none}
+
+.keys{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--key);border-top:2px solid var(--key-line)}
+.chips{display:flex;gap:8px;overflow-x:auto}
+.chip{flex:none;min-height:36px;padding:0 14px;border:1px solid var(--key-line);border-radius:3px;background:#1a1815;color:var(--amber);font:700 12px/1 var(--mono);letter-spacing:.12em;cursor:pointer}
+.cmdrow{display:flex;align-items:center;gap:8px;min-width:0}
+.cmdrow label{flex:none;font:700 16px/1 var(--mono);letter-spacing:.1em;color:var(--amber)}
+#cmd{flex:1 1 auto;width:0;min-width:0;height:44px;padding:0 10px;border:1px solid var(--key-line);border-radius:3px;background:#100f0d;color:var(--amber);font:700 16px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;caret-color:var(--amber)}
+#cmd[type=password]{text-transform:none}
+.enter{flex:none;height:44px;padding:0 14px;border:1px solid var(--amber);border-radius:3px;background:var(--amber);color:#1b1608;font:700 12px/1 var(--mono);letter-spacing:.14em;cursor:pointer}
+
+/* tela do mestre */
+#master{max-width:640px;margin:0 auto;padding:12px 16px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font:16px/1.5 var(--ui);color:#efe6d6}
+#master h1{margin:8px 0 2px;font:700 21px/1.2 var(--ui)}
+#master .sub{margin:0 0 14px;color:#a99f8a;font-size:14px}
+#master .card{display:grid;gap:10px;margin-bottom:12px;padding:14px;border:1px solid #3a3128;border-radius:8px;background:#1f1a15}
+#master h2{margin:0;font:700 16px/1.3 var(--ui)}
+#master p{margin:0}
+.fld{display:grid;gap:4px;font-size:14px;color:#a99f8a}
+.fld input,.fld select,.fld textarea{width:100%;padding:10px;border:1px solid #4a3f33;border-radius:6px;background:#14110e;color:#efe6d6;font:16px/1.4 var(--ui)}
+.fld textarea{min-height:140px;font-family:var(--mono);resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:44px;padding:0 16px;border:1px solid #4a3f33;border-radius:6px;background:#2a231c;color:#efe6d6;font:600 14px/1 var(--ui);cursor:pointer}
+.btn.main{border-color:var(--amber);background:var(--amber);color:#1b1608}
+.btn.bad{border-color:var(--bad);color:#f0a08c}
+.btn:disabled{opacity:.5;cursor:default}
+.item{display:grid;gap:8px;padding:10px 12px;border:1px solid #3a3128;border-radius:8px;background:#1a1612}
+.item .hd{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.item .nm{min-width:0;font-weight:600;overflow-wrap:anywhere}
+.item .pv{color:#a99f8a;font-size:14px;overflow-wrap:anywhere}
+.pill{flex:none;padding:4px 8px;border:1px solid #4a3f33;border-radius:99px;color:#a99f8a;font:700 11px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase}
+.pill.on{border-color:var(--ok);color:var(--ok)}
+.msgm{min-height:1.4em;font-size:14px;color:#a99f8a}
+.msgm.ok{color:var(--ok)}
+.msgm.bad{color:#f0a08c}
+.chk{display:flex;gap:10px;align-items:center;font-size:15px;color:#efe6d6}
+.chk input{width:20px;height:20px;accent-color:var(--amber)}
+
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app" hidden>
+  <header class="top"><span class="led busy" id="led" aria-hidden="true"></span><span id="topl">VP-7</span></header>
+  <main class="paper" aria-label="Papel do terminal"><div id="out" role="log" aria-live="polite"></div></main>
+  <form class="keys" id="keys" autocomplete="off">
+    <div class="chips" id="chips" hidden>
+      <button type="button" class="chip" data-c="ajuda">AJUDA</button>
+      <button type="button" class="chip" data-c="arquivos">ARQUIVOS</button>
+      <button type="button" class="chip" data-c="mensagens">MENSAGENS</button>
+      <button type="button" class="chip" data-c="limpar">LIMPAR</button>
+    </div>
+    <div class="cmdrow">
+      <label for="cmd" id="plabel">&gt;</label>
+      <input id="cmd" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="send">
+      <button class="enter" type="submit">ENTER</button>
+    </div>
+  </form>
+</div>
+<div id="master" hidden></div>
+<script src="supabase.js"></script>
+<script>
+(function () {
+'use strict';
+/* Nomes de cena. Troca aqui se mudar a empresa ou o terminal. */
+var EMPRESA = 'VOSSLER PICTURES', MAQUINA = 'TERMINAL VP-7', LOCAL = 'CINE REX / COXILHA SECA', LARG = 30;
+/* A chave abaixo é a publishable, que pode ficar pública. Nunca coloque a chave secret aqui. */
+var SB_URL = 'https://ywcmprththajbptzxiep.supabase.co';
+var SB_KEY = 'sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb';
+
+function $(s) { return document.querySelector(s); }
+function rep(c, n) { var s = ''; while (s.length < n) s += c; return s; }
+function SSget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function SSset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+function SSdel(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim(); }
+var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/* ---------- banco ---------- */
+var sb = null;
+function client() {
+  if (sb) return sb;
+  if (!window.supabase || !window.supabase.createClient) throw new Error('sem_biblioteca');
+  sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+  return sb;
+}
+async function rpc(name, args) {
+  var r = await client().rpc(name, args);
+  if (r && r.error) { var e = new Error(r.error.message || 'erro'); e.msg = String(r.error.message || ''); e.code = r.error.code; throw e; }
+  return r.data;
+}
+
+/* ---------- jogador ---------- */
+var P = { mode: 'senha', senha: null, itens: [], conhecidos: {}, lidos: {}, tent: 0, poll: null, pollando: false, falhas: 0, sinal: true, fila: Promise.resolve(), ac: null };
+
+function rolar() { window.scrollTo(0, document.documentElement.scrollHeight); }
+function imprimir(linhas) {
+  P.fila = P.fila.then(function () { return imprimirAgora(linhas); });
+  return P.fila;
+}
+function imprimirAgora(linhas) {
+  var out = $('#out'), i = 0;
+  var atraso = reduce ? 0 : Math.max(8, Math.min(40, 900 / Math.max(1, linhas.length)));
+  return new Promise(function (done) {
+    (function prox() {
+      if (i >= linhas.length) { rolar(); return done(); }
+      var l = linhas[i++], el;
+      if (typeof l === 'string') l = { t: l };
+      if (l.cmd) {
+        el = document.createElement('button');
+        el.type = 'button';
+        el.addEventListener('click', (function (c) { return function () { executar(c); }; })(l.cmd));
+      } else el = document.createElement('div');
+      el.className = 'ln' + (l.cls ? ' ' + l.cls : '');
+      el.textContent = l.t === '' ? ' ' : l.t;
+      out.appendChild(el);
+      rolar();
+      if (atraso) setTimeout(prox, atraso); else prox();
+    })();
+  });
+}
+function setLed(s) { var l = $('#led'); l.className = 'led' + (s === 'off' ? ' off' : s === 'busy' ? ' busy' : ''); }
+function setModo(m) {
+  P.mode = m;
+  var c = $('#cmd');
+  if (m === 'senha') {
+    c.type = 'password'; $('#plabel').textContent = 'SENHA'; $('#chips').hidden = true;
+    c.setAttribute('autocapitalize', 'none');
+  } else {
+    c.type = 'text'; $('#plabel').textContent = '>'; $('#chips').hidden = false;
+    c.setAttribute('autocapitalize', 'characters');
+  }
+}
+function bip() {
+  try {
+    if (navigator.vibrate) navigator.vibrate(120);
+    var C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    P.ac = P.ac || new C();
+    var a = P.ac, o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+    o.type = 'sine'; o.frequency.value = 1320;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 0.55);
+  } catch (e) {}
+}
+function lerJSON(s) { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function texto(corpo) { return String(corpo || '').split('\n'); }
+function linhaDiv(cls) { return { t: rep('=', LARG), cls: cls || 'dim' }; }
+
+function banner() {
+  return [{ t: EMPRESA, cls: 'bold' }, MAQUINA, LOCAL, linhaDiv(), '', 'ACESSO RESTRITO A PESSOAL', 'AUTORIZADO.', ''];
+}
+function pedirSenha(extra) {
+  setModo('senha');
+  imprimir((extra || []).concat(['SENHA:']));
+}
+
+async function tentarSenha(v, retomando) {
+  v = String(v || '').trim();
+  if (!v) return;
+  P.mode = 'espera'; setLed('busy');
+  if (!retomando) imprimir(['SENHA: ' + rep('*', Math.min(v.length, 20)), 'VERIFICANDO...']);
+  try {
+    var itens = await rpc('sdo_t_ler', { p_senha: v });
+    P.senha = v; SSset('sdo_tk', v);
+    setLed('on'); setModo('cmd');
+    aplicar(itens || [], true);
+    var arq = P.itens.filter(function (i) { return i.tipo === 'arquivo'; }).length;
+    var linhas = [{ t: 'ACESSO CONCEDIDO.', cls: 'bold' }, 'DATA: NOV/78', ''];
+    linhas.push(arq ? arq + (arq === 1 ? ' ARQUIVO DISPONIVEL.' : ' ARQUIVOS DISPONIVEIS.') : 'NENHUM ARQUIVO AINDA.');
+    linhas.push({ t: 'DIGITE AJUDA.', cls: 'dim' }, '');
+    imprimir(linhas);
+    var msgs = P.itens.filter(function (i) { return i.tipo === 'mensagem'; });
+    if (msgs.length) { imprimir([{ t: 'MENSAGENS NA CAIXA: ' + msgs.length, cls: 'bold' }, '']); msgs.forEach(function (m) { imprimir(blocoMsg(m, false)); }); }
+    iniciarPoll();
+  } catch (e) {
+    P.tent++;
+    SSdel('sdo_tk');
+    if (/senha_errada/.test(e.msg || '')) { setLed('on'); pedirSenha(['SENHA INCORRETA.', 'TENTATIVA ' + P.tent + '.', '']); }
+    else { setLed('off'); pedirSenha(['SEM SINAL COM A CENTRAL.', 'TENTE DE NOVO.', '']); }
+  }
+}
+
+function aplicar(itens, primeira) {
+  var novos = [];
+  itens.forEach(function (it) { if (!P.conhecidos[it.id]) { P.conhecidos[it.id] = 1; if (!primeira) novos.push(it); } });
+  P.itens = itens;
+  return novos;
+}
+function blocoMsg(it, vivo) {
+  var o = [{ t: vivo ? '*** TRANSMISSAO RECEBIDA ***' : '--- MENSAGEM ---', cls: 'alert' }];
+  if (it.titulo) o.push({ t: it.titulo, cls: 'bold' });
+  texto(it.corpo).forEach(function (x) { o.push(x); });
+  o.push({ t: rep('*', LARG), cls: 'dim' }, '');
+  return o;
+}
+function anunciar(it) {
+  if (it.tipo === 'mensagem') imprimir(blocoMsg(it, true));
+  else imprimir([{ t: '*** NOVO ARQUIVO: ' + (it.nome || 'SEM NOME') + ' ***', cls: 'alert' }, { t: 'DIGITE ARQUIVOS.', cls: 'dim' }, '']);
+  bip();
+}
+
+function iniciarPoll() { pararPoll(); P.poll = setInterval(poll, 6000); }
+function pararPoll() { if (P.poll) clearInterval(P.poll); P.poll = null; }
+async function poll() {
+  if (document.hidden || P.mode === 'senha' || P.mode === 'espera' || P.pollando || !P.senha) return;
+  P.pollando = true;
+  try {
+    var itens = await rpc('sdo_t_ler', { p_senha: P.senha });
+    if (!P.sinal) { P.sinal = true; setLed('on'); imprimir([{ t: 'SINAL RESTABELECIDO.', cls: 'dim' }, '']); }
+    P.falhas = 0;
+    aplicar(itens || [], false).forEach(anunciar);
+  } catch (e) {
+    if (/senha_errada/.test(e.msg || '')) sair('SESSAO ENCERRADA PELA CENTRAL.');
+    else { P.falhas++; if (P.falhas >= 3 && P.sinal) { P.sinal = false; setLed('off'); imprimir([{ t: 'SEM SINAL...', cls: 'alert' }, '']); } }
+  }
+  P.pollando = false;
+}
+
+/* ---------- comandos ---------- */
+function ajuda() {
+  imprimir([{ t: 'COMANDOS', cls: 'bold' }, '  AJUDA      ESTA LISTA', '  ARQUIVOS   O QUE HA NO SISTEMA', '  LER <N>    ABRE UM ARQUIVO', '  MENSAGENS  REVE AS MENSAGENS', '  LIMPAR     LIMPA O PAPEL', '  SAIR       ENCERRA A SESSAO', '']);
+}
+function listaArq() { return P.itens.filter(function (i) { return i.tipo === 'arquivo'; }); }
+function arquivos() {
+  var arq = listaArq();
+  if (!arq.length) { imprimir(['NENHUM ARQUIVO DISPONIVEL.', '']); return; }
+  var o = [{ t: 'ARQUIVOS (' + arq.length + ')', cls: 'bold' }];
+  arq.forEach(function (a, i) { o.push({ t: (i + 1 < 10 ? ' ' : '') + (i + 1) + '  ' + (a.nome || 'SEM NOME') + (P.lidos[a.id] ? '' : '  *'), cmd: 'ler ' + (i + 1) }); });
+  o.push({ t: '* = NAO LIDO', cls: 'dim' }, '');
+  imprimir(o);
+}
+function ler(arg) {
+  var arq = listaArq(), it = null;
+  arg = String(arg || '').trim();
+  if (!arg) { imprimir(['QUAL ARQUIVO? EX: LER 1', '']); return; }
+  if (/^\d+$/.test(arg)) it = arq[parseInt(arg, 10) - 1];
+  else {
+    var k = norm(arg).replace(/\.[A-Z0-9]+$/, '');
+    for (var i = 0; i < arq.length; i++) if (norm(arq[i].nome).replace(/\.[A-Z0-9]+$/, '') === k) { it = arq[i]; break; }
+  }
+  if (!it) { imprimir(['ARQUIVO NAO ENCONTRADO.', { t: 'DIGITE ARQUIVOS.', cls: 'dim' }, '']); return; }
+  P.lidos[it.id] = 1; SSset('sdo_tl', JSON.stringify(P.lidos));
+  var o = [linhaDiv(), { t: it.nome || 'SEM NOME', cls: 'bold' }];
+  if (it.titulo) o.push(it.titulo);
+  o.push(linhaDiv());
+  texto(it.corpo).forEach(function (x) { o.push(x); });
+  o.push(linhaDiv(), { t: 'FIM DO ARQUIVO', cls: 'dim' }, '');
+  imprimir(o);
+}
+function mensagens() {
+  var m = P.itens.filter(function (i) { return i.tipo === 'mensagem'; });
+  if (!m.length) { imprimir(['NENHUMA MENSAGEM.', '']); return; }
+  m.forEach(function (x) { imprimir(blocoMsg(x, false)); });
+}
+function executar(txt) {
+  var raw = String(txt || '').trim();
+  if (!raw || P.mode !== 'cmd') return;
+  var partes = raw.split(/\s+/), c = norm(partes[0]), arg = partes.slice(1).join(' ');
+  imprimir([{ t: '> ' + raw.toUpperCase(), cls: 'bold' }]);
+  switch (c) {
+    case 'AJUDA': case 'HELP': case '?': ajuda(); break;
+    case 'ARQUIVOS': case 'ARQUIVO': case 'DIR': case 'LS': arquivos(); break;
+    case 'LER': case 'ABRIR': case 'TYPE': case 'CAT': ler(arg); break;
+    case 'MENSAGENS': case 'MENSAGEM': case 'MSG': mensagens(); break;
+    case 'LIMPAR': case 'CLS': case 'CLEAR': $('#out').textContent = ''; break;
+    case 'SAIR': case 'LOGOFF': case 'EXIT': sair('SESSAO ENCERRADA.'); break;
+    default: imprimir(['COMANDO NAO RECONHECIDO.', { t: 'DIGITE AJUDA.', cls: 'dim' }, '']);
+  }
+}
+function sair(msg) {
+  pararPoll(); SSdel('sdo_tk'); SSdel('sdo_tl');
+  P.senha = null; P.itens = []; P.conhecidos = {}; P.lidos = {}; P.tent = 0; P.sinal = true; P.falhas = 0;
+  setLed('on');
+  pedirSenha([{ t: msg || 'SESSAO ENCERRADA.', cls: 'bold' }, '']);
+}
+
+async function bootJogador() {
+  $('#app').hidden = false;
+  P.lidos = lerJSON(SSget('sdo_tl')) || {};
+  setModo('senha');
+  $('#keys').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var c = $('#cmd'), v = c.value;
+    c.value = '';
+    if (P.mode === 'senha') tentarSenha(v); else executar(v);
+    c.focus();
+  });
+  $('#chips').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.chip') : null;
+    if (b) executar(b.getAttribute('data-c'));
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  imprimir(banner());
+  var tk = SSget('sdo_tk');
+  if (tk) { imprimir(['RETOMANDO SESSAO...']); await tentarSenha(tk, true); }
+  else imprimir(['SENHA:']);
+}
+
+/* ---------- mestre ---------- */
+function h(tag, attrs) {
+  var e = document.createElement(tag), k, i;
+  attrs = attrs || {};
+  for (k in attrs) {
+    var v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+    else if (k === 'value') e.value = v;
+    else if (k === 'checked') e.checked = !!v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  function add(c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach(add);
+    else e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  for (i = 2; i < arguments.length; i++) add(arguments[i]);
+  return e;
+}
+var M = { senha: null, itens: [], definida: false, edit: null, msg: '', cls: '' };
+
+function erroTxt(e) {
+  var m = (e && e.msg) || '';
+  if (/senha_errada/.test(m)) return 'A senha do mestre não confere.';
+  if (/senha_curta/.test(m)) return 'A senha do terminal precisa de pelo menos 3 letras.';
+  if (/grande_demais/.test(m)) return 'Texto grande demais.';
+  if (/nao_encontrado/.test(m)) return 'Esse item não existe mais. Atualizei a lista.';
+  return 'Não consegui falar com o banco. Confira se o terminal-banco.sql já foi rodado no Supabase.';
+}
+async function mEntrar(pw, silencioso) {
+  if (!pw) { M.msg = 'Digite a senha.'; M.cls = 'bad'; mRender(); return; }
+  try {
+    var r = await rpc('sdo_m_t_listar', { p_senha: pw });
+    M.senha = pw; SSset('sdo_tm', pw);
+    M.itens = (r && r.itens) || []; M.definida = !!(r && r.senha_definida);
+    M.msg = ''; M.cls = '';
+  } catch (e) {
+    SSdel('sdo_tm'); M.senha = null;
+    M.msg = erroTxt(e); M.cls = 'bad';
+  }
+  mRender();
+}
+async function mAtualizar(okmsg) {
+  var r = await rpc('sdo_m_t_listar', { p_senha: M.senha });
+  M.itens = (r && r.itens) || []; M.definida = !!(r && r.senha_definida);
+  M.msg = okmsg || ''; M.cls = okmsg ? 'ok' : '';
+  mRender();
+}
+async function mAcao(fn, okmsg) {
+  try { await fn(); await mAtualizar(okmsg); }
+  catch (e) {
+    M.msg = erroTxt(e); M.cls = 'bad';
+    if (/nao_encontrado/.test(e.msg || '')) { try { await mAtualizar(M.msg); M.cls = 'bad'; mRender(); } catch (x) {} } else mRender();
+  }
+}
+function mSair() { SSdel('sdo_tm'); M.senha = null; M.itens = []; M.edit = null; M.msg = ''; M.cls = ''; mRender(); }
+
+function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+function mRender() {
+  var root = $('#master');
+  root.textContent = '';
+  if (!M.senha) {
+    root.appendChild(h('div', {},
+      h('h1', {}, 'Terminal da Sessão das Oito'),
+      h('p', { class: 'sub' }, 'Área do mestre'),
+      h('form', { class: 'card', onsubmit: function (e) { e.preventDefault(); mEntrar(val('mpw')); } },
+        h('label', { class: 'fld', for: 'mpw' }, h('span', {}, 'Senha do mestre (a mesma das fichas)'),
+          h('input', { id: 'mpw', type: 'password', autocomplete: 'current-password' })),
+        h('button', { class: 'btn main', type: 'submit' }, 'Entrar'),
+        h('p', { class: 'msgm ' + M.cls, role: 'status' }, M.msg))));
+    return;
+  }
+  var lista = M.itens.map(mItem);
+  if (M.edit === 'novo-arquivo' || M.edit === 'novo-mensagem') lista.unshift(mForm(null, M.edit === 'novo-mensagem' ? 'mensagem' : 'arquivo'));
+  root.appendChild(h('div', {},
+    h('div', { class: 'row', style: 'justify-content:space-between' },
+      h('div', {}, h('h1', {}, 'Terminal · Mestre'), h('p', { class: 'sub' }, 'Os jogadores veem o que você liberar em até 6 segundos.')),
+      h('div', { class: 'row' },
+        h('a', { class: 'btn', href: 'terminal.html', target: '_blank', rel: 'noopener', style: 'display:inline-flex;align-items:center;text-decoration:none' }, 'Ver como jogador'),
+        h('button', { class: 'btn', type: 'button', onclick: mSair }, 'Sair'))),
+    h('p', { class: 'msgm ' + M.cls, role: 'status' }, M.msg),
+
+    h('form', { class: 'card', onsubmit: function (e) { e.preventDefault(); mSenhaTerm(val('tpw')); } },
+      h('h2', {}, 'Senha do terminal'),
+      h('p', { class: 'msgm' }, M.definida ? 'Já está definida. Escreva uma nova pra trocar.' : 'Ainda não definida. Ninguém consegue entrar até você definir.'),
+      h('label', { class: 'fld', for: 'tpw' }, h('span', {}, 'Senha que os jogadores descobrem'), h('input', { id: 'tpw', type: 'text', autocomplete: 'off', autocapitalize: 'none' })),
+      h('p', { class: 'msgm' }, 'Maiúscula, minúscula e acento não fazem diferença.'),
+      h('button', { class: 'btn', type: 'submit' }, M.definida ? 'Trocar senha' : 'Definir senha')),
+
+    h('form', { class: 'card', onsubmit: function (e) { e.preventDefault(); mEnviar(val('quick')); } },
+      h('h2', {}, 'Mandar agora'),
+      h('label', { class: 'fld', for: 'quick' }, h('span', {}, 'Aparece na hora na tela dos jogadores, com um bipe'),
+        h('textarea', { id: 'quick', style: 'min-height:90px' })),
+      h('button', { class: 'btn main', type: 'submit' }, 'Enviar transmissão')),
+
+    h('div', { class: 'card' },
+      h('div', { class: 'row', style: 'justify-content:space-between' },
+        h('h2', {}, 'Arquivos e mensagens (' + M.itens.length + ')'),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn', type: 'button', onclick: function () { M.edit = 'novo-arquivo'; mRender(); } }, '+ Arquivo'),
+          h('button', { class: 'btn', type: 'button', onclick: function () { M.edit = 'novo-mensagem'; mRender(); } }, '+ Mensagem'))),
+      lista.length ? lista : h('p', { class: 'msgm' }, 'Nada ainda. Crie um arquivo e libere quando quiser.'))));
+}
+function mItem(it) {
+  if (M.edit === it.id) return mForm(it, it.tipo);
+  var prev = String(it.corpo || '').replace(/\s+/g, ' ').slice(0, 110);
+  return h('div', { class: 'item' },
+    h('div', { class: 'hd' },
+      h('span', { class: 'nm' }, (it.tipo === 'arquivo' ? 'Arquivo · ' : 'Mensagem · ') + (it.nome || it.titulo || '(sem nome)')),
+      h('span', { class: 'pill' + (it.visivel ? ' on' : '') }, it.visivel ? 'Liberado' : 'Escondido')),
+    prev ? h('p', { class: 'pv' }, prev) : null,
+    h('div', { class: 'row' },
+      h('button', { class: 'btn' + (it.visivel ? '' : ' main'), type: 'button', onclick: function () { mAcao(function () { return rpc('sdo_m_t_visivel', { p_senha: M.senha, p_id: it.id, p_visivel: !it.visivel }); }, it.visivel ? 'Escondido.' : 'Liberado. Os jogadores recebem em até 6 segundos.'); } }, it.visivel ? 'Esconder' : 'Liberar'),
+      h('button', { class: 'btn', type: 'button', onclick: function () { M.edit = it.id; mRender(); } }, 'Editar'),
+      mApagar(it)));
+}
+function mApagar(it) {
+  var b = h('button', { class: 'btn bad', type: 'button' }, 'Apagar');
+  var armado = false;
+  b.addEventListener('click', function () {
+    if (!armado) { armado = true; b.textContent = 'Toque de novo pra apagar'; setTimeout(function () { armado = false; b.textContent = 'Apagar'; }, 3500); return; }
+    mAcao(function () { return rpc('sdo_m_t_apagar', { p_senha: M.senha, p_id: it.id }); }, 'Apagado.');
+  });
+  return b;
+}
+function mForm(it, tipo) {
+  var novo = !it;
+  return h('form', { class: 'item', onsubmit: function (e) {
+      e.preventDefault();
+      var t = val('e-tipo') || tipo;
+      mAcao(function () {
+        return rpc('sdo_m_t_salvar', { p_senha: M.senha, p_id: novo ? null : it.id, p_tipo: t, p_nome: t === 'arquivo' ? val('e-nome') : '', p_titulo: val('e-titulo'), p_corpo: val('e-corpo'), p_visivel: document.getElementById('e-vis').checked });
+      }, 'Salvo.').then(function () { if (M.cls === 'ok') M.edit = null; mRender(); });
+    } },
+    h('label', { class: 'fld', for: 'e-tipo' }, h('span', {}, 'Tipo'),
+      h('select', { id: 'e-tipo', onchange: function () { var n = document.getElementById('e-nome'); if (n) n.closest('label').hidden = this.value !== 'arquivo'; } },
+        h('option', { value: 'arquivo', selected: tipo === 'arquivo' }, 'Arquivo (o jogador abre com LER)'),
+        h('option', { value: 'mensagem', selected: tipo === 'mensagem' }, 'Mensagem (aparece sozinha na tela)'))),
+    h('label', { class: 'fld', for: 'e-nome', hidden: tipo !== 'arquivo' }, h('span', {}, 'Nome do arquivo, como aparece na lista'),
+      h('input', { id: 'e-nome', type: 'text', maxlength: 60, value: it ? it.nome : '', placeholder: 'MEMO01.TXT', autocapitalize: 'characters' })),
+    h('label', { class: 'fld', for: 'e-titulo' }, h('span', {}, 'Título ou remetente (opcional)'),
+      h('input', { id: 'e-titulo', type: 'text', maxlength: 200, value: it ? it.titulo : '' })),
+    h('label', { class: 'fld', for: 'e-corpo' }, h('span', {}, 'Texto'),
+      h('textarea', { id: 'e-corpo', value: it ? it.corpo : '' })),
+    h('label', { class: 'chk', for: 'e-vis' }, h('input', { id: 'e-vis', type: 'checkbox', checked: it ? it.visivel : false }), 'Liberado pros jogadores'),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn main', type: 'submit' }, 'Salvar'),
+      h('button', { class: 'btn', type: 'button', onclick: function () { M.edit = null; mRender(); } }, 'Cancelar')));
+}
+function mEnviar(txt) {
+  txt = String(txt || '').trim();
+  if (!txt) { M.msg = 'Escreva a mensagem antes de enviar.'; M.cls = 'bad'; mRender(); return; }
+  mAcao(function () { return rpc('sdo_m_t_salvar', { p_senha: M.senha, p_id: null, p_tipo: 'mensagem', p_nome: '', p_titulo: '', p_corpo: txt, p_visivel: true }); }, 'Enviado. Chega na tela dos jogadores em até 6 segundos.');
+}
+function mSenhaTerm(nova) {
+  nova = String(nova || '').trim();
+  if (nova.length < 3) { M.msg = 'A senha do terminal precisa de pelo menos 3 letras.'; M.cls = 'bad'; mRender(); return; }
+  mAcao(function () { return rpc('sdo_m_t_senha', { p_senha: M.senha, p_nova: nova }); }, 'Senha do terminal salva.');
+}
+async function bootMestre() {
+  document.title = 'Terminal · Mestre';
+  $('#master').hidden = false;
+  var s = SSget('sdo_tm');
+  if (s) await mEntrar(s, true); else mRender();
+}
+
+/* ---------- partida ---------- */
+function iniciar() {
+  try { client(); } catch (e) {
+    $('#app').hidden = false;
+    $('#out').textContent = 'FALHA NA CENTRAL.\nO ARQUIVO supabase.js NAO CARREGOU.';
+    return;
+  }
+  if (/[?&](mestre|m)(&|=|$)/.test(location.search)) bootMestre(); else bootJogador();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+})();
+</script>
+</body>
+</html>
