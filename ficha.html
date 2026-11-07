@@ -541,7 +541,7 @@ function tabHabilidades(){
         h('button',{type:'button',class:'btn',disabled:!algumaUsada,onclick:function(){
           mut('habilidades',L.map(function(x){return {nome:x.nome,texto:x.texto,usada:false}}),true);
         }},'Nova cena')),
-      h('p',{class:'cap',style:'margin-top:8px'},'Marque "usada nesta cena" quando gastar uma habilidade de uma vez por cena. Quando a cena acabar, toque em Nova cena pra liberar todas.'),
+      h('p',{class:'cap',style:'margin-top:8px'},'Se uma habilidade só pode ser usada uma vez por cena, marque "usada nesta cena" e, quando a cena acabar, toque em Nova cena. As que custam PD não precisam disso: gaste o PD na aba Ficha.'),
       L.length?h('div',{class:'rels'},cards):h('div',{class:'empty muted'},'Nenhuma habilidade ainda. Toque em Adicionar habilidade.'),
       h('button',{type:'button',class:'btn main',disabled:cheio,onclick:add},cheio?'Limite de '+MAX_HAB+' habilidades':'Adicionar habilidade'))
   ];
