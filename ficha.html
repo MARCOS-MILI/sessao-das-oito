@@ -61,7 +61,7 @@ button,input,textarea{font:inherit;color:inherit}
 .btn:disabled,.die:disabled{opacity:.5;cursor:not-allowed}
 
 .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 2px}
-.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 8px;font-size:14.5px;cursor:pointer;color:var(--muted);white-space:nowrap;flex:1 0 auto}
 .tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--a)}
 
 .plate{border:1px solid var(--line);border-left:6px solid var(--a);border-radius:10px;padding:16px;background:linear-gradient(135deg,var(--panel2),var(--panel))}
@@ -120,6 +120,29 @@ input:disabled,textarea:disabled{opacity:.7}
 .linkrow input{font-family:var(--mono);font-size:13px}
 .foot{font-size:12px;color:var(--muted);margin-top:8px}
 .empty{text-align:center;padding:28px 16px}
+
+/* relações e itens */
+.rels{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.rel{border:1px solid var(--line);border-left:5px solid var(--a);border-radius:10px;background:var(--panel2);padding:14px;display:flex;flex-direction:column;gap:12px}
+.rel.usada{opacity:.75}
+.pips{display:flex;gap:8px;align-items:center}
+.pip{width:32px;height:32px;border-radius:50%;border:2px solid var(--a);background:transparent;cursor:pointer;padding:0}
+.pip.on{background:var(--a);box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+.pip:hover{border-color:var(--text)}
+.bonus{background:var(--ink);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.bonus b{display:block;font-family:var(--display);font-weight:400;font-size:16px;color:var(--a)}
+.bonus ul{margin:6px 0 0;padding-left:18px}
+.bonus li{margin:3px 0}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--a)}
+.addrow{display:flex;gap:8px;margin:12px 0}
+.itens{display:grid;gap:8px;grid-template-columns:1fr 1fr}
+@media(max-width:480px){.itens{grid-template-columns:1fr}}
+.item{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--a);border-radius:10px;padding:6px 8px 6px 12px}
+.item .mk{width:9px;height:9px;background:var(--a);transform:rotate(45deg);border-radius:2px}
+.item input.nm{background:transparent;border:0;border-bottom:1px dashed transparent;border-radius:0;padding:8px 2px}
+.item input.nm:focus{border-bottom-color:var(--a);outline:none}
+.item .x{min-width:40px;padding:6px 10px}
 @media(prefers-reduced-motion:no-preference){.bar i{transition:width .25s}}
 </style>
 </head>
@@ -171,7 +194,14 @@ var TEXTOS={nome:'Nome',alias:'Outro nome',idade:'Idade',ocupacao:'Ocupação',m
 var NUMS={pv:'PV',pvMax:'PV máximo',pd:'PD',pdMax:'PD máximo'};
 var ESPS={aptidao:'Aptidão (especialidade)',oficio:'Ofício (especialidade)'};
 var BLANK={tema:'neutro',nome:'',alias:'',idade:'',ocupacao:'',motivo:'',talento:'',historia:'',
-  attrs:{fisico:'d6',mente:'d6',emocao:'d6'},pericias:{},esp:{aptidao:'',oficio:''},pv:15,pvMax:15,pd:12,pdMax:12,log:[]};
+  attrs:{fisico:'d6',mente:'d6',emocao:'d6'},pericias:{},esp:{aptidao:'',oficio:''},pv:15,pvMax:15,pd:12,pdMax:12,log:[],relacoes:[],itens:[]};
+/* Graus de relação, como no guia do playtest. Cada relação só pode ser invocada uma vez por missão. */
+var GRAUS={
+  1:{nome:'Afinidade',b:['+1d6 em um teste ligado à pessoa.','Ao ajudar a pessoa, dá +1d6 além do aumento de passo.']},
+  2:{nome:'Vínculo',b:['+1d8 em um teste ligado à pessoa.','Ao ajudar a pessoa, dá +1d8 além do aumento de passo.','Gasta uma ação pra motivar a pessoa: ela recupera 2d4 PD.']},
+  3:{nome:'Devoção',b:['+1d12 em um teste ligado à pessoa.','Ao ajudar a pessoa, dá +1d12 além do aumento de passo.','Gasta uma ação pra motivar a pessoa: ela recupera 2d6 PD.','Se a pessoa está em perigo, faz uma ação extra pra ajudar ela.']}
+};
+var MAX_REL=8,MAX_ITENS=40;
 
 var params=new URLSearchParams(location.search);
 var ctx={mode:'inicio',token:null,senha:null,modelos:{},fichas:{},tokens:{},err:'',busy:false,slow:false,novo:null,online:true};
@@ -230,6 +260,12 @@ function norm(S){
   o.esp=Object.assign({},BLANK.esp,S.esp||{});
   o.log=Array.isArray(S.log)?S.log:[];
   o.tema=S.tema||'neutro';
+  /* fichas antigas não têm relações nem itens: aqui elas ganham as listas vazias */
+  o.relacoes=(Array.isArray(S.relacoes)?S.relacoes:[]).map(function(r){
+    r=r||{};
+    return {nome:String(r.nome||''),pessoa:String(r.pessoa||''),grau:[1,2,3].indexOf(+r.grau)>=0?+r.grau:1,usada:!!r.usada};
+  });
+  o.itens=(Array.isArray(S.itens)?S.itens:[]).map(function(i){return {nome:String((i&&i.nome)||'')}});
   return o;
 }
 function loadS(d){return norm(clone(d||{}))}
@@ -255,8 +291,16 @@ function diffLog(a,b){
   ATTRS.forEach(function(x){var o=attrs(a)[x[0]],n=attrs(b)[x[0]]; if(o!==n) out.push({k:'attrs.'+x[0],l:x[1],de:o,para:n})});
   PERICIAS.forEach(function(p){var o=per(a,p.id),n=per(b,p.id); if(o!==n) out.push({k:'pericias.'+p.id,l:p.nome,de:o,para:n})});
   for(k in ESPS){var o2=(a.esp&&a.esp[k])||'',n2=(b.esp&&b.esp[k])||''; if(o2!==n2) out.push({k:'esp.'+k,l:ESPS[k],txt:1,para:n2.slice(0,160)})}
+  if(sj(a.relacoes||[])!==sj(b.relacoes||[])) out.push({k:'relacoes',l:'Relações',v:'editadas',txt:1,para:relTxt(b).slice(0,160)||'nenhuma'});
+  if(sj(a.itens||[])!==sj(b.itens||[])) out.push({k:'itens',l:'Itens',v:'editados',txt:1,para:itensTxt(b).slice(0,160)||'nenhum'});
   return out;
 }
+function relTxt(S){
+  return (S.relacoes||[]).map(function(r){
+    return (r.nome||'sem nome')+' com '+(r.pessoa||'sem nome')+', grau '+(r.grau||1)+(r.usada?' (invocada)':'');
+  }).join('; ');
+}
+function itensTxt(S){return (S.itens||[]).map(function(i){return i.nome||'sem nome'}).join(', ')}
 function mergeLog(log,entries,por){
   var out=log.slice(),now=Date.now();
   entries.forEach(function(e){
@@ -271,7 +315,7 @@ function mergeLog(log,entries,por){
   return out.slice(-60);
 }
 function logTxt(e){
-  if(e.txt) return e.l+' editado'+(e.para?': “'+e.para+'”':'');
+  if(e.txt) return e.l+' '+(e.v||'editado')+(e.para?': “'+e.para+'”':'');
   return e.l+': '+e.de+' → '+e.para;
 }
 
@@ -384,9 +428,9 @@ function plate(S){
     S.alias?h('p',{class:'plate-s'},'Também se apresenta como '+S.alias):null);
 }
 function tabsBar(){
-  var T=[['ficha','Ficha'],['pericias','Perícias'],['historia','História']];
+  var T=[['ficha','Ficha'],['pericias','Perícias'],['relacoes','Relações'],['itens','Itens'],['historia','História']];
   return h('div',{class:'tabs',role:'tablist'},T.map(function(t){
-    return h('button',{type:'button',role:'tab','aria-selected':String(sh.tab===t[0]),onclick:function(){sh.tab=t[0];render()}},t[1]);
+    return h('button',{type:'button',role:'tab','aria-selected':String(sh.tab===t[0]),onclick:function(){sh.tab=t[0];confirmKey=null;render()}},t[1]);
   }));
 }
 
@@ -436,6 +480,76 @@ function tabPericias(){
     }),
     h('p',{class:'foot'},'Tecnologia e Pilotagem não estão na ficha oficial. O mestre acrescentou pra jogar em 1978. Em um teste, o mestre pode pedir outro atributo.'));
 }
+/* botão de remover com confirmação em dois toques (evita apagar sem querer no celular) */
+var confirmKey=null;
+function rmBtn(key,label,yes,compact){
+  if(confirmKey===key) return h('span',{class:'row',style:'gap:6px;flex-wrap:nowrap'},
+    h('button',{type:'button',class:'btn danger sm',onclick:function(){confirmKey=null;yes()}},compact?'Tirar':'Sim, remover'),
+    h('button',{type:'button',class:'btn ghost sm',onclick:function(){confirmKey=null;render()}},compact?'Não':'Cancelar'));
+  return h('button',{type:'button',class:'btn ghost danger'+(compact?' x':''),'aria-label':label,onclick:function(){confirmKey=key;render()}},compact?'×':'Remover');
+}
+function tabRelacoes(){
+  var S=sh.S,L=S.relacoes;
+  var cheio=L.length>=MAX_REL;
+  function add(){
+    if(L.length>=MAX_REL) return;
+    var i=L.length;
+    mut('relacoes',L.concat([{nome:'',pessoa:'',grau:1,usada:false}]),true);
+    setTimeout(function(){var el=document.getElementById('f_relacoes_'+i+'_nome');if(el) el.focus()},0);
+  }
+  var cards=L.map(function(r,i){
+    var g=GRAUS[r.grau],p='relacoes.'+i+'.';
+    return h('article',{class:'rel'+(r.usada?' usada':'')},
+      h('div',{class:'row sb'},
+        h('b',{class:'cap'},'Relação '+(i+1)),
+        h('div',{class:'pips',role:'group','aria-label':'Grau da relação '+(i+1)},[1,2,3].map(function(n){
+          return h('button',{type:'button',class:'pip'+(n<=r.grau?' on':''),'aria-pressed':String(n===r.grau),'aria-label':'Grau '+n+', '+GRAUS[n].nome,
+            onclick:function(){mut(p+'grau',n,true)}});
+        }))),
+      h('div',{class:'fields'},
+        field('Relação',p+'nome',{ph:'ex.: amizade, admiração, dívida'}),
+        field('Com quem',p+'pessoa',{ph:'nome do personagem'})),
+      h('div',{class:'bonus'},
+        h('b',{},'Grau '+r.grau+': '+g.nome),
+        h('div',{class:'cap'},'Ao invocar, escolha um:'),
+        h('ul',{},g.b.map(function(t){return h('li',{},t)}))),
+      h('div',{class:'row sb'},
+        h('label',{class:'chk'},
+          h('input',{type:'checkbox',checked:r.usada?true:null,onchange:function(e){mut(p+'usada',e.target.checked,true)}}),
+          'Já invocada nesta missão'),
+        rmBtn('rel:'+i,'Remover a relação '+(i+1),function(){mut('relacoes',L.filter(function(x,j){return j!==i}),true)})));
+  });
+  return h('section',{class:'card'},
+    h('h2',{},'Relações'),
+    h('p',{class:'cap'},'Pessoas que ajudam seu personagem a aguentar firme. Pra invocar uma relação, conte o que você sente pela pessoa e como isso ajuda, e escolha um benefício do grau. Cada relação só pode ser invocada uma vez por missão.'),
+    h('div',{class:'chips'},h('span',{class:'chip'},L.length+(L.length===1?' relação':' relações')),h('span',{class:'chip'},'sugestão: começar com 3, no grau 1')),
+    L.length?h('div',{class:'rels'},cards):h('div',{class:'empty muted'},'Nenhuma relação ainda. Toque em Adicionar relação.'),
+    h('button',{type:'button',class:'btn main',disabled:cheio,onclick:add},cheio?'Limite de '+MAX_REL+' relações':'Adicionar relação'));
+}
+function tabItens(){
+  var S=sh.S,L=S.itens;
+  var inp=h('input',{id:'novo_item',placeholder:'Nome do item (lanterna, rádio, chave...)','aria-label':'Nome do novo item',maxlength:'60'});
+  function add(){
+    var v=inp.value.trim();
+    if(!v){inp.focus();return}
+    if(L.length>=MAX_ITENS) return;
+    mut('itens',L.concat([{nome:v}]),true);
+    setTimeout(function(){var e=document.getElementById('novo_item');if(e) e.focus()},0);
+  }
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add()}});
+  var lista=L.length?h('div',{class:'itens'},L.map(function(it,i){
+    return h('div',{class:'item'},
+      h('i',{class:'mk','aria-hidden':'true'}),
+      h('input',{class:'nm',value:it.nome,maxlength:'60','aria-label':'Item '+(i+1),oninput:function(e){mut('itens.'+i+'.nome',e.target.value)}}),
+      rmBtn('it:'+i,'Remover '+(it.nome||'item'),function(){mut('itens',L.filter(function(x,j){return j!==i}),true)},true));
+  })):h('div',{class:'empty muted'},'Mochila vazia. Adicione o que seu personagem carrega.');
+  return h('section',{class:'card'},
+    h('h2',{},'Itens'),
+    h('p',{class:'cap'},'O que seu personagem carrega. Toque no nome pra mudar.'),
+    h('div',{class:'chips'},h('span',{class:'chip'},L.length+(L.length===1?' item':' itens'))),
+    h('div',{class:'addrow'},inp,h('button',{type:'button',class:'btn main',onclick:add},'Adicionar')),
+    lista);
+}
 function tabHistoria(){
   return h('section',{class:'card'},h('h2',{},'História'),
     h('div',{class:'fields'},field('Conte de onde você veio e como chegou até aqui','historia',{area:1,rows:16,wide:1})));
@@ -458,7 +572,7 @@ function viewSheet(){
         h('button',{type:'button',class:'btn',onclick:function(){seenSet(sh.id,Date.now());render()}},'Marcar como visto'),
         delBtn(sh.id))));
   }
-  var body=sh.tab==='ficha'?tabFicha():sh.tab==='pericias'?tabPericias():tabHistoria();
+  var body=sh.tab==='ficha'?tabFicha():sh.tab==='pericias'?tabPericias():sh.tab==='relacoes'?tabRelacoes():sh.tab==='itens'?tabItens():tabHistoria();
   return h('div',{class:'wrap'},box,plate(S),tabsBar(),body,
     h('p',{class:'foot'},'Regras: playtest beta de Ordem Paranormal RPG 2 (Jambô), uso gratuito e sem fins lucrativos. Limites de distribuição são sugestões do mestre.'));
 }
