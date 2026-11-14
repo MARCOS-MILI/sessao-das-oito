@@ -2,7 +2,13 @@
 
 Site que os jogadores abrem: quadro de investigação (`index.html`), fichas (`ficha.html`), terminal (`terminal.html`)
 e as peças (`pecas/`). HTML, CSS e JS puros, sem build. GitHub Pages a partir da `main`, pasta raiz.
-Banco: Supabase (plano grátis), só por funções SQL (`sql/`), com a chave `publishable` no código.
+Banco: Supabase (plano grátis). Endereço e chave `publishable` só em `comum/config.js`. Ficha e terminal falam
+só por funções SQL; o quadro da mesa grava direto em `mesa_cards` e `mesa_links` (ver `sql/mesa-banco.sql`).
+
+## Decidido pelo Marcos
+- 14/11/2026: minigames ficam pra depois. Primeiro organizar o que já existe.
+- Quando vierem, cada minigame entra em `jogos/<nome>/` e usa `comum/`. A resposta de enigma nunca fica
+  escrita no código (fica no banco ou em hash), porque o site é público.
 
 ## Como trabalhar com o Marcos
 - Ele escreve por voz no celular, em português do Brasil informal. Interpretar a intenção, não ler ao pé da letra.

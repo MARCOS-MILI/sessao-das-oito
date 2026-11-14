@@ -100,15 +100,16 @@ button.ln:hover,button.ln:focus-visible{background:#1d221924;outline:none}
   </form>
 </div>
 <div id="master" hidden></div>
+<script src="comum/config.js"></script>
 <script src="supabase.js"></script>
 <script>
 (function () {
 'use strict';
 /* Nomes de cena. Troca aqui se mudar a empresa ou o terminal. */
 var EMPRESA = 'VOSSLER PICTURES', MAQUINA = 'TERMINAL VP-7', LOCAL = 'CINE REX / COXILHA SECA', LARG = 30;
-/* A chave abaixo é a publishable, que pode ficar pública. Nunca coloque a chave secret aqui. */
-var SB_URL = 'https://ywcmprththajbptzxiep.supabase.co';
-var SB_KEY = 'sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb';
+/* Endereço e chave do Supabase vêm de comum/config.js. */
+var SB_URL = (window.SB_CONFIG || {}).url;
+var SB_KEY = (window.SB_CONFIG || {}).key;
 
 function $(s) { return document.querySelector(s); }
 function rep(c, n) { var s = ''; while (s.length < n) s += c; return s; }

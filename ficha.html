@@ -149,14 +149,15 @@ input:disabled,textarea:disabled{opacity:.7}
 <body data-char="neutro">
 <div id="app"></div>
 <noscript>Esta ficha precisa de JavaScript.</noscript>
+<script src="comum/config.js"></script>
 <script src="supabase.js"></script>
 <script>
 (function(){
 'use strict';
 
-/* A chave abaixo é a publishable, que pode ficar pública. Nunca coloque a chave secret aqui. */
-var SB_URL='https://ywcmprththajbptzxiep.supabase.co';
-var SB_KEY='sb_publishable_8iMZ_QBIx0RuMgyNrXFbsg_u5cX1vsb';
+/* Endereço e chave do Supabase vêm de comum/config.js. */
+var SB_URL=(window.SB_CONFIG||{}).url;
+var SB_KEY=(window.SB_CONFIG||{}).key;
 
 var app=document.getElementById('app');
 var DICE=['d4','d6','d8','d10','d12'];
