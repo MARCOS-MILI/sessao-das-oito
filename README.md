@@ -6,7 +6,8 @@ Quadro de investigação da mesa de RPG (Coxilha Seca, novembro de 1978).
 - `ficha.html`: fichas dos jogadores. `terminal.html`: terminal de cena. `teste.html`: diagnóstico da conexão.
 - `pecas/`: imagens que vão pros jogadores (cartazes, ingresso, caderno, etiquetas, mapas dos jogadores).
 - `supabase.js`: biblioteca do Supabase (versão 2.119.0), usada pelo quadro da mesa, pela ficha e pelo terminal.
-- `sql/`: o que roda no SQL Editor do Supabase.
+- `comum/config.js`: endereço e chave do Supabase, num lugar só pra todas as páginas.
+- `sql/`: o que roda no SQL Editor do Supabase (`ficha-banco.sql`, `terminal-banco.sql` e `mesa-banco.sql`, a cópia de segurança do quadro da mesa).
 
 O quadro do mestre abre com senha e fica só no aparelho. O quadro da mesa guarda os cartões e os fios
 no Supabase (tabelas `mesa_cards` e `mesa_links`), e cada mesa usa um código.
