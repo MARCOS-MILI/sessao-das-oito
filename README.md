@@ -2,8 +2,11 @@
 
 Quadro de investigação da mesa de RPG (Coxilha Seca, novembro de 1978).
 
-- `index.html`: o site inteiro, num arquivo só.
-- `supabase.js`: biblioteca do Supabase (versão 2.119.0), usada só no quadro da mesa ao vivo.
+- `index.html`: o quadro (mesa ao vivo, quadro do mestre e quadros dos investigadores), num arquivo só.
+- `ficha.html`: fichas dos jogadores. `terminal.html`: terminal de cena. `teste.html`: diagnóstico da conexão.
+- `pecas/`: imagens que vão pros jogadores (cartazes, ingresso, caderno, etiquetas, mapas dos jogadores).
+- `supabase.js`: biblioteca do Supabase (versão 2.119.0), usada pelo quadro da mesa, pela ficha e pelo terminal.
+- `sql/`: o que roda no SQL Editor do Supabase.
 
 O quadro do mestre abre com senha e fica só no aparelho. O quadro da mesa guarda os cartões e os fios
 no Supabase (tabelas `mesa_cards` e `mesa_links`), e cada mesa usa um código.
@@ -28,3 +31,9 @@ Computador de cena que abre a sessão: papel de impressora, senha e arquivos que
 - O site fala com o Supabase só por funções SQL (`sql/terminal-banco.sql`, rodar depois do `ficha-banco.sql`). As tabelas ficam fechadas pro público.
 - O código do site não guarda a senha do terminal nem o texto dos arquivos. Tudo isso fica só no banco.
 - Os nomes de cena (empresa, máquina, local) ficam no começo do script, em `EMPRESA`, `MAQUINA` e `LOCAL`.
+
+## Peças dos jogadores (`pecas/`)
+
+Imagens que podem ir pra mesa. O Escudo do Mestre copia os links daqui (aba Links), pra nenhum link mandado aos
+jogadores mostrar o endereço do Escudo. Peça nova pros jogadores entra aqui e em `img/pecas/` do Escudo.
+Mapas dos jogadores ficam como `mapa-jogadores-antes.webp` e `mapa-jogadores-depois.webp`.
