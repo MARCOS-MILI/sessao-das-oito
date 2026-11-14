@@ -215,6 +215,44 @@ button,input,textarea{font:inherit;color:inherit}
 .pbadge{position:absolute;left:-2px;top:-28px;z-index:3;max-width:100%;padding:4px 8px;border-radius:3px 3px 0 0;background:var(--peer,#a7b4ad);color:#10120f;font:700 12px/1 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.stamp.live::before{animation:none}}
 
+/* quadro ou mapa */
+.modes{position:absolute;left:12px;top:12px;z-index:10;display:flex;padding:3px;background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.modes button{appearance:none;min-height:36px;padding:6px 15px;border:0;border-radius:999px;background:transparent;color:var(--ui-dim);font:600 14px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--lamp);color:#1c1606}
+.zchip.on{border-color:var(--lamp);color:var(--ui);background:var(--panel-2)}
+.zchip.add{border-style:dashed}
+.maplayer{position:absolute;left:0;top:0}
+#mimg{display:block;width:2000px;max-width:none;height:auto;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.tok{position:absolute;left:0;top:0;width:0;height:0;cursor:grab;touch-action:none}
+.ti{position:absolute;left:0;top:0;transform:scale(var(--ts,1));transform-origin:0 0}
+.thit{position:absolute;left:-32px;top:-32px;width:64px;height:64px;border-radius:50%}
+.tb{position:absolute;left:-23px;top:-23px;width:46px;height:46px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:var(--tc,#a7b4ad);border:3px solid #f4f2ea;box-shadow:0 4px 10px rgba(0,0,0,.65);font:700 16px/1 var(--f-ui);color:#10120f;letter-spacing:.02em}
+.tb img{width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+.tn{position:absolute;left:0;top:27px;transform:translateX(-50%);max-width:180px;padding:4px 8px;border-radius:4px;background:rgba(10,14,12,.88);color:var(--ui);font:600 13px/1 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.tok.sel .tb{box-shadow:0 0 0 4px var(--lamp),0 4px 10px rgba(0,0,0,.65)}
+.tok.sel{z-index:2}
+.dk-acts.three{grid-template-columns:repeat(3,1fr)}
+.dk-acts.five{grid-template-columns:repeat(5,1fr)}
+.dk-idle .ib{width:auto;min-width:48px;height:auto;border:1px solid var(--line);border-radius:4px;background:var(--panel-2)}
+
+/* imagens */
+.snap{margin:-4px -2px 10px;background:#1b1a17;border:5px solid #f4f2ea;border-bottom-width:13px;box-shadow:0 1px 3px rgba(0,0,0,.35);transform:rotate(-1deg)}
+.snap img{display:block;width:100%;height:auto;max-height:360px;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.snap.redact{height:90px;background:var(--redact)}
+.imgprev img{display:block;max-width:100%;max-height:180px;margin:0 0 8px;border:1px solid var(--line);border-radius:4px;background:#0e1513}
+.imgbtns{display:flex;flex-wrap:wrap;gap:6px}
+.imglink{display:flex;gap:6px;margin-top:8px}
+.imglink input{flex:1;min-width:0}
+.imgmsg:empty{display:none}
+label.btn{position:relative}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none}
+.busy{opacity:.45;pointer-events:none}
+.maplist{display:grid;gap:8px;margin:0 0 18px}
+.mrow{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center}
+.mrow.on input{border-color:var(--lamp)}
+.cc{appearance:none;width:40px;height:40px;border-radius:50%;border:3px solid #f4f2ea;background:var(--c);cursor:pointer}
+.cc[aria-pressed="true"]{box-shadow:0 0 0 3px var(--lamp)}
+
 /* cartões */
 .card{position:absolute;left:0;top:0;width:224px;color:var(--ink);font:400 12.5px/1.4 var(--f-body);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
   filter:drop-shadow(0 7px 8px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.5))}
@@ -293,6 +331,7 @@ button,input,textarea{font:inherit;color:inherit}
   <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></symbol>
   <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></symbol>
 </svg>
 
 <main id="home" class="home">
@@ -361,6 +400,10 @@ button,input,textarea{font:inherit;color:inherit}
       <div id="zl"></div>
       <svg class="threads" id="th" width="1" height="1"></svg>
       <div id="cl"></div>
+      <div id="ml" class="maplayer" hidden><img id="mimg" alt="" draggable="false"><div id="tl"></div></div>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Ver o quadro ou o mapa">
+      <button type="button" data-mode="quadro" aria-pressed="true">Quadro</button><button type="button" data-mode="mapa" aria-pressed="false">Mapa</button>
     </div>
     <div class="livenote" id="liveNote" role="status" hidden></div>
     <div class="zoomctl">
@@ -513,7 +556,8 @@ async function tryPw(){
 
 /* ---------- estado e referências ---------- */
 const S={route:null,board:null,sel:null,selKind:null,linking:null,undo:[],hidden:new Set(),query:'',secretOpen:false,
-  view:{tx:0,ty:0,k:1},playerOnly:false,lastTap:null,sheetH:{},ghost:{},editing:null,editingLink:null};
+  view:{tx:0,ty:0,k:1},playerOnly:false,lastTap:null,sheetH:{},ghost:{},editing:null,editingLink:null,
+  mode:'quadro',curMap:null,fitMapPending:false,editingTok:null,editingMaps:false};
 { const u=LS.get(K_UI)||{}; S.secretOpen=!!u.secret; }
 const stage=$('#stage'),world=$('#world'),zl=$('#zl'),th=$('#th'),cl=$('#cl'),dockin=$('#dockin'),sw=$('#sw'),sheet=$('#sheet');
 let cardEls={},linkEls={},zTop=10,dirty=false,saveT=0,viewT=0,animT=0,toastT=0;
@@ -539,11 +583,14 @@ function cardHTML(c){
   const title=sec?'<span class="sx redact">'+esc(c.title||'Sem título')+'</span>':(c.title?esc(c.title):'<span class="ph">Sem título</span>');
   const sub=c.sub?'<p class="sub">'+(sec?blackout(c.sub):esc(c.sub))+'</p>':'';
   const who='<span class="kick">'+kick+'</span><h3 class="ttl">'+title+'</h3>'+sub;
+  const im=okImg(c.img);
   let inner;
-  if(c.type==='pessoa') inner='<div class="head"><div class="photo"><svg class="sil" viewBox="0 0 44 54" aria-hidden="true"><use href="#sil"/></svg></div><div class="who">'+who+'</div></div>';
+  if(c.type==='pessoa'&&im) inner=who;
+  else if(c.type==='pessoa') inner='<div class="head"><div class="photo"><svg class="sil" viewBox="0 0 44 54" aria-hidden="true"><use href="#sil"/></svg></div><div class="who">'+who+'</div></div>';
   else if(c.type==='grupo') inner='<div class="head"><div class="mark"><svg viewBox="0 0 40 40" aria-hidden="true"><use href="#bld"/></svg></div><div class="who">'+who+'</div></div>';
   else if(c.type==='verdade') inner='<div class="vband"><span class="kick">'+kick+'</span><span class="vstamp">Só o mestre</span></div><h3 class="ttl">'+title+'</h3>'+sub;
   else inner=who;
+  if(im) inner=(sec?'<div class="snap redact"></div>':'<div class="snap"><img src="'+esc(im)+'" alt="" draggable="false"></div>')+inner;
   if(c.body) inner+='<p class="txt">'+(sec?blackout(c.body):fmt(c.body))+'</p>';
   if(c.type==='ponto'&&c.rows&&c.rows.length){
     inner+='<div class="rows">'+c.rows.map(r=>'<div class="row"><span class="dtb"><i>DT</i>'+esc(r.dt||'?')+'</span><div><b class="sk">'+esc(r.s||'Perícia')+'</b><p>'+esc(r.i)+'</p></div></div>').join('')+'</div>';
@@ -709,6 +756,7 @@ function applyState(){
   });
   stage.classList.toggle('linking',!!S.linking);
   $('#bFilter').classList.toggle('on',!!(q||S.hidden.size));
+  applyMapState();
 }
 function select(kind,id){
   S.sel=id; S.selKind=kind;
@@ -739,13 +787,14 @@ function scheduleSave(fast){
   saveT=setTimeout(saveBoard,fast?30:(S.board&&S.board.mode==='mesa'?260:350));
 }
 function flushSave(){ clearTimeout(saveT); saveBoard(); }
+const vkey=()=>K_V+S.board.id+(S.mode==='mapa'?':m':'');
 function saveViewSoon(){
   clearTimeout(viewT);
-  viewT=setTimeout(()=>{ if(S.board) LS.set(K_V+S.board.id,S.view); },500);
+  viewT=setTimeout(()=>{ if(S.board) LS.set(vkey(),S.view); },500);
 }
 function updateUndo(){ $('#bUndo').disabled=!S.undo.length; }
 function pushUndo(){
-  S.undo.push(JSON.stringify({cards:S.board.cards,links:S.board.links}));
+  S.undo.push(JSON.stringify({cards:S.board.cards,links:S.board.links,maps:S.board.maps||[],tokens:S.board.tokens||[]}));
   if(S.undo.length>50) S.undo.shift();
   updateUndo();
 }
@@ -753,15 +802,16 @@ function undo(){
   if(!S.board||S.board.mode==='mesa') return;
   const s=S.undo.pop(); if(!s) return;
   const d=JSON.parse(s);
-  S.board.cards=d.cards; S.board.links=d.links;
+  S.board.cards=d.cards; S.board.links=d.links; S.board.maps=d.maps||[]; S.board.tokens=d.tokens||[];
   S.sel=null; S.selKind=null; S.linking=null;
-  closeSheet(); rebuildLayers(); applyState(); renderDock(); updateUndo(); scheduleSave();
+  closeSheet(); rebuildLayers(); if(isMap()) renderMap(); applyState(); renderDock(); updateUndo(); scheduleSave();
 }
 
 /* ---------- ponto de vista (pan e zoom) ---------- */
 function applyView(){
   const v=S.view;
   world.style.transform='translate('+v.tx+'px,'+v.ty+'px) scale('+v.k+')';
+  if(S.mode==='mapa') ml.style.setProperty('--ts',clamp(1/v.k,.45,4.2).toFixed(3));
   stage.style.backgroundPosition='0 0,'+v.tx+'px '+v.ty+'px,0 0';
 }
 function setView(tx,ty,k,anim){
@@ -775,6 +825,7 @@ function zoomAt(cx,cy,nk){
   S.view={tx:px-wx*k,ty:py-wy*k,k:k}; applyView(); saveViewSoon();
 }
 function contentBounds(){
+  if(isMap()) return {x:0,y:0,w:MAPW,h:mapH};
   const b=S.board; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   b.cards.forEach(c=>{
     const el=cardEls[c.id],h=el?el.offsetHeight:180;
@@ -888,6 +939,7 @@ function onLinkTarget(id){
 const act=(a,ic,lab)=>'<button class="act" type="button" data-act="'+a+'"><svg class="ic"><use href="#'+ic+'"/></svg>'+lab+'</button>';
 function renderDock(){
   let h='';
+  if(isMap()){ renderMapDock(); return; }
   if(isRO()){
     if(S.selKind==='card'&&S.sel){
       const c=cardById(S.sel);
@@ -901,8 +953,9 @@ function renderDock(){
     h='<div class="dk-msg"><span>Toque no cartão que recebe o fio de <b>'+esc(c?shownTitle(c):'')+'</b></span><button class="btn sm" type="button" data-act="cancel">Cancelar</button></div>';
   } else if(S.selKind==='card'&&S.sel){
     const c=cardById(S.sel);
+    const foto=c&&okImg(c.img)&&!(isRed()&&isSecret(c));
     h='<div class="dk-t"><span>'+esc(c?shownTitle(c):'')+'</span><button class="ib sm" type="button" data-act="desel" aria-label="Soltar seleção"><svg class="ic"><use href="#i-close"/></svg></button></div>'+
-      '<div class="dk-acts">'+act('edit','i-edit','Editar')+act('link','i-link','Ligar')+act('zoom','i-zoom','Ampliar')+act('del','i-trash','Excluir')+'</div>';
+      '<div class="dk-acts'+(foto?' five':'')+'">'+act('edit','i-edit','Editar')+act('link','i-link','Ligar')+act('zoom','i-zoom','Ampliar')+(foto?act('foto','i-img','Foto'):'')+act('del','i-trash','Excluir')+'</div>';
   } else if(S.selKind==='link'&&S.sel){
     const l=S.board.links.find(x=>x.id===S.sel);
     h='<div class="dk-t"><span>Fio: '+esc(l&&l.label?l.label:'sem nome')+'</span><button class="ib sm" type="button" data-act="desel" aria-label="Soltar seleção"><svg class="ic"><use href="#i-close"/></svg></button></div>'+
@@ -925,6 +978,12 @@ dockin.addEventListener('click',e=>{
   else if(a==='desel') deselect();
   else if(a==='editlink') openLink(S.sel);
   else if(a==='dellink') deleteLink(S.sel);
+  else if(a==='foto'){ const c=cardById(S.sel); if(c&&okImg(c.img)) window.open(okImg(c.img),'_blank','noopener'); }
+  else if(a==='tnew') addTok();
+  else if(a==='maps') openMaps();
+  else if(a==='tedit') openTok(S.sel);
+  else if(a==='tzoom') focusTok(S.sel);
+  else if(a==='tdel') deleteTok(S.sel);
 });
 
 /* ---------- folha: novo cartão ---------- */
@@ -956,6 +1015,7 @@ function openEdit(id,isNew){
   openSheet('<div class="sh-h"><h2>Editar cartão</h2>'+closeBtn()+'</div>'+
     '<div class="fld"><span class="lab">Tipo</span><div class="tchips" id="e-types">'+types.map(t=>typeChip(t,c.type)).join('')+'</div></div>'+
     fld('e-title','Título','<input id="e-title" type="text" maxlength="120" autocomplete="off" value="'+esc(c.title)+'">')+
+    imgField('e-img',c.img,'Imagem')+
     fld('e-sub','Subtítulo','<input id="e-sub" type="text" maxlength="160" autocomplete="off" placeholder="Cargo, idade, onde, quando" value="'+esc(c.sub)+'">')+
     fld('e-body','Texto','<textarea id="e-body" rows="5" maxlength="2000">'+esc(c.body)+'</textarea><span class="help">Use **assim** para negrito. Enter pula linha.</span>')+
     '<div class="fld" id="e-rowsf"'+(c.type==='ponto'?'':' hidden')+'><span class="lab">Linhas de teste</span><div id="e-rows">'+rowsEditor(c)+'</div><button class="btn sm" type="button" id="e-radd">Adicionar linha</button></div>'+
@@ -993,6 +1053,7 @@ function openEdit(id,isNew){
     }
   });
   S.editing=id;
+  bindImg('e-img',1400,u=>{ begin(); c.img=u; refresh(); });
   if(isNew){ const t=$('#e-title'); if(t) t.focus(); }
 }
 
@@ -1079,6 +1140,7 @@ function cleanBoard(o){
     const k={id:id,type:type,title:str(c.title,120),sub:str(c.sub,160),body:str(c.body,2000),hid:'',foot:str(c.foot,400),tag:str(c.tag,40),
       rows:(Array.isArray(c.rows)?c.rows:[]).slice(0,12).map(r=>({s:str(r&&r.s,40),dt:str(r&&r.dt,3),i:str(r&&r.i,400)})),x:num(c.x),y:num(c.y)};
     if(c.w) k.w=clamp(num(c.w),160,360);
+    if(okImg(c.img)) k.img=okImg(c.img);
     cards.push(k);
   });
   const links=[];
@@ -1091,7 +1153,7 @@ async function openExport(){
   const b=S.board;
   openSheet('<div class="sh-h"><h2>Código do quadro</h2>'+closeBtn()+'</div><p class="help">Gerando o código…</p>',{});
   let code='';
-  try{ code=await pack({v:1,name:b.name,cards:b.cards.map(c=>({id:c.id,type:c.type,title:c.title,sub:c.sub,body:c.body,foot:c.foot,tag:c.tag,rows:c.rows,x:c.x,y:c.y,w:c.w})),links:b.links}); }catch(e){}
+  try{ code=await pack({v:1,name:b.name,cards:b.cards.map(c=>({id:c.id,type:c.type,title:c.title,sub:c.sub,body:c.body,foot:c.foot,tag:c.tag,rows:c.rows,x:c.x,y:c.y,w:c.w,img:okImg(c.img)||undefined})),links:b.links}); }catch(e){}
   openSheet('<div class="sh-h"><h2>Código do quadro</h2>'+closeBtn()+'</div>'+
     '<p class="help">Copie e mande pelo Discord. Quem receber usa "Colar código" na tela inicial. Mensagens do Discord aceitam até 2000 caracteres, então um quadro grande pode precisar de duas mensagens.</p>'+
     '<div class="fld"><textarea id="x-code" class="code" readonly>'+esc(code)+'</textarea><span class="help">'+code.length+' caracteres</span></div>'+
@@ -1122,6 +1184,7 @@ function openMenu(){
       '<li>Toque num cartão para ver só os fios dele. Toque duas vezes para ampliar.</li>'+
       '<li>Para ligar, escolha um cartão, toque em Ligar e depois no outro cartão.</li>'+
       '<li>Toque num fio para dar nome e trocar entre certeza, suspeita e contradição.</li>'+
+      '<li>Toque em Mapa, no alto, para ver o mapa. Arraste as peças para mostrar onde cada um está.</li>'+
       (mesa?'<li>Quem apagar um cartão ou fio pode desfazer no aviso que aparece logo depois.</li>':'<li>Tudo salva sozinho neste aparelho. Desfazer volta o último passo.</li>')+
     '</ul>',
   {
@@ -1179,6 +1242,334 @@ function toggleSecret(){
   const u=LS.get(K_UI)||{}; u.secret=S.secretOpen; LS.set(K_UI,u);
   paintVeil();
   S.board.cards.forEach(renderCard); S.board.links.forEach(drawLink); applyState(); renderDock();
+}
+
+/* ---------- imagens: link https ou peça do site ---------- */
+function okImg(u){
+  u=String(u==null?'':u).trim();
+  if(/^https:\/\/[^\s"'<>\\]{4,480}$/.test(u)) return u;
+  if(/^pecas\/[a-z0-9-]{1,80}\.webp$/.test(u)) return u;
+  return '';
+}
+let upClient=null;
+function upSb(){
+  if(!upClient){
+    if(!(window.SB_CONFIG&&window.supabase&&window.supabase.createClient)) throw new Error('sem_banco');
+    upClient=window.supabase.createClient(window.SB_CONFIG.url,window.SB_CONFIG.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  }
+  return upClient;
+}
+/* diminui a foto no aparelho antes de mandar (lado maior até "max" px, WebP ou JPEG) */
+async function shrink(file,max){
+  const url=URL.createObjectURL(file);
+  try{
+    const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+    const s=Math.min(1,max/Math.max(im.naturalWidth||1,im.naturalHeight||1));
+    const w=Math.max(1,Math.round(im.naturalWidth*s)),h=Math.max(1,Math.round(im.naturalHeight*s));
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,w,h); cx.drawImage(im,0,0,w,h);
+    const toBlob=(t,q)=>new Promise(r=>cv.toBlob(r,t,q));
+    let b=await toBlob('image/webp',.82);
+    if(!b||b.type!=='image/webp') b=await toBlob('image/jpeg',.85);
+    return b;
+  } finally { URL.revokeObjectURL(url); }
+}
+async function uploadImg(file,max){
+  const b=await shrink(file,max); if(!b) throw new Error('imagem');
+  const room=(isMesa()&&M.code)?M.code:'pessoal';
+  const path=room+'/'+Date.now().toString(36)+'-'+uid()+(b.type==='image/webp'?'.webp':'.jpg');
+  const st=upSb().storage.from('quadro');
+  const r=await st.upload(path,b,{contentType:b.type,cacheControl:'31536000',upsert:false});
+  if(r.error) throw r.error;
+  const u=okImg(st.getPublicUrl(path).data.publicUrl);
+  if(!u) throw new Error('link');
+  return u;
+}
+function upErrMsg(e){
+  const m=String((e&&e.message)||e||'');
+  if(/sem_banco/.test(m)) return 'Enviar foto só funciona no site publicado. Use Colar link.';
+  if(/bucket/i.test(m)) return 'As fotos ainda não foram ligadas no Supabase. O mestre precisa rodar o sql/quadro-mapa.sql uma vez.';
+  if(/row-level|policy|unauthori|403/i.test(m)) return 'O Supabase recusou a foto. Confira se o sql/quadro-mapa.sql rodou.';
+  if(/size|large|413/i.test(m)) return 'A foto ficou grande demais.';
+  if(/imagem/.test(m)) return 'Não consegui abrir essa imagem. Tente outra.';
+  return 'Não consegui enviar a foto. Confira a internet e tente de novo.';
+}
+function imgInner(cur){
+  const u=okImg(cur);
+  return (u?'<div class="imgprev"><img src="'+esc(u)+'" alt=""></div>':'')+
+    '<div class="imgbtns"><label class="btn sm">Enviar foto<input type="file" accept="image/*" class="vh"></label>'+
+    '<button class="btn sm" type="button" data-img="link">Colar link</button>'+
+    (u?'<button class="btn sm danger" type="button" data-img="rm">Tirar</button>':'')+'</div>'+
+    '<div class="imglink" hidden><input type="url" inputmode="url" placeholder="https://…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Link da imagem"><button class="btn sm pri" type="button" data-img="ok">Usar</button></div>'+
+    '<span class="help imgmsg"></span>';
+}
+const imgField=(id,cur,lab)=>'<div class="fld"><span class="lab">'+lab+'</span><div id="'+id+'">'+imgInner(cur)+'</div></div>';
+function bindImg(id,max,set){
+  const box=$('#'+id); if(!box) return;
+  const msg=t=>{ const m=$('.imgmsg',box); if(m) m.textContent=t||''; };
+  const repaint=u=>{ box.innerHTML=imgInner(u); wire(); };
+  function wire(){
+    const f=$('input[type=file]',box); if(!f) return;
+    f.addEventListener('change',async()=>{
+      const file=f.files&&f.files[0]; if(!file) return;
+      msg('Enviando a foto…'); $$('.btn',box).forEach(x=>x.classList.add('busy'));
+      try{ const u=await uploadImg(file,max); set(u); if(box.isConnected) repaint(u); toast('Foto enviada'); }
+      catch(err){ if(box.isConnected){ $$('.busy',box).forEach(x=>x.classList.remove('busy')); msg(upErrMsg(err)); } else toast(upErrMsg(err)); }
+      f.value='';
+    });
+  }
+  box.addEventListener('click',e=>{
+    const b=e.target.closest('[data-img]'); if(!b) return;
+    const a=b.dataset.img;
+    if(a==='link'){ const l=$('.imglink',box); l.hidden=false; $('input',l).focus(); }
+    else if(a==='ok'){
+      const u=okImg($('.imglink input',box).value);
+      if(!u){ msg('Esse link não serve. Ele precisa começar com https:// e ser de uma imagem.'); return; }
+      set(u); repaint(u);
+    }
+    else if(a==='rm'){ set(''); repaint(''); }
+  });
+  box.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.type==='url'){ e.preventDefault(); const ok=$('[data-img="ok"]',box); if(ok) ok.click(); } });
+  wire();
+}
+
+/* ---------- mapa: imagens de mapa e peças que andam ---------- */
+const MAPW=2000,MAPMAX=12,TOKMAX=60;
+const PRESET_MAP={name:'Coxilha Seca',img:'pecas/mapa-jogadores-antes.webp'};
+const TOK_COLORS=['#e07a5f','#5fa7a0','#e0a040','#6fa8dc','#9b7bc4','#d9719a','#8fbf6a','#c9b458','#eceee8','#3a3a38'];
+const ml=$('#ml'),tl=$('#tl'),mimg=$('#mimg');
+let tokEls={},mapH=MAPW*.7;
+const isMap=()=>!!S.board&&S.mode==='mapa';
+const mapById=id=>(S.board.maps||[]).find(m=>m.id===id);
+const tokById=id=>(S.board.tokens||[]).find(t=>t.id===id);
+const sortedMaps=()=>(S.board.maps||[]).slice().sort((a,b)=>((a.ord||0)-(b.ord||0))||String(a.name).localeCompare(String(b.name)));
+function curMap(){ return mapById(S.curMap)||sortedMaps()[0]||null; }
+function saveMode(){ if(S.board) LS.set(K_V+S.board.id+':modo',{mode:S.mode,map:S.curMap}); }
+function showMode(mode){
+  S.mode=mode;
+  const mp=mode==='mapa';
+  zl.hidden=mp; cl.hidden=mp; th.style.display=mp?'none':''; ml.hidden=!mp;
+  $$('#modes [data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  $('#bFilter').hidden=mp;
+}
+function setMode(mode){
+  if(!S.board||mode===S.mode) return;
+  S.sel=null; S.selKind=null; S.linking=null; S.lastTap=null; closeSheet();
+  LS.set(vkey(),S.view);
+  showMode(mode); saveMode();
+  const saved=LS.get(vkey());
+  const okv=saved&&Number.isFinite(saved.k)&&Number.isFinite(saved.tx)&&Number.isFinite(saved.ty);
+  if(mode==='mapa'){
+    if(okv&&!S.fitMapPending) setView(saved.tx,saved.ty,clamp(saved.k,MINK,MAXK)); else S.fitMapPending=true;
+    renderMap();
+  } else {
+    buildZoneBar(); applyState(); renderDock(); refreshNote();
+    if(okv) setView(saved.tx,saved.ty,clamp(saved.k,MINK,MAXK)); else fitAll();
+  }
+}
+mimg.addEventListener('load',()=>{
+  if(mimg.naturalWidth) mapH=Math.round(MAPW*mimg.naturalHeight/mimg.naturalWidth);
+  if(S.fitMapPending&&isMap()){ S.fitMapPending=false; fitAll(); }
+});
+mimg.addEventListener('error',()=>{ if(isMap()&&mimg.getAttribute('src')) note('Não consegui abrir a imagem deste mapa. Confira o link em + Mapa.'); });
+function renderMap(){
+  if(!S.board) return;
+  const m=curMap();
+  if(!m){ mimg.hidden=true; mimg.removeAttribute('src'); mimg.dataset.src=''; }
+  else {
+    mimg.hidden=false;
+    if(mimg.dataset.src!==m.img){ mimg.dataset.src=m.img; mapH=MAPW*.7; mimg.src=m.img; }
+    else if(S.fitMapPending&&mimg.complete&&mimg.naturalWidth){ S.fitMapPending=false; fitAll(); }
+  }
+  tl.innerHTML=''; tokEls={};
+  (S.board.tokens||[]).forEach(renderTok);
+  if(S.selKind==='tok'&&!tokEls[S.sel]){ S.sel=null; S.selKind=null; }
+  applyView(); buildZoneBar(); applyMapState(); renderDock(); refreshNote();
+}
+function mapsChanged(){
+  if(!isMap()) return;
+  if(S.editingMaps) refreshMapList();
+  renderMap();
+}
+function placeTok(t){ const el=tokEls[t.id]; if(el) el.style.transform='translate('+t.x+'px,'+t.y+'px)'; }
+function removeTokEl(id){ const el=tokEls[id]; if(el){ el.remove(); delete tokEls[id]; } }
+function renderTok(t){
+  if(!isMap()) return;
+  const m=curMap();
+  if(!m||t.map!==m.id){ removeTokEl(t.id); return; }
+  let el=tokEls[t.id];
+  if(!el){ el=document.createElement('div'); el.className='tok'; el.dataset.id=t.id; el.tabIndex=0; el.setAttribute('role','button'); tl.appendChild(el); tokEls[t.id]=el; }
+  const im=okImg(t.img),nm=String(t.name||'').trim();
+  el.style.setProperty('--tc',t.color||'#a7b4ad');
+  el.setAttribute('aria-label','Peça: '+(nm||'sem nome'));
+  el.innerHTML='<div class="ti"><i class="thit"></i><div class="tb">'+(im?'<img src="'+esc(im)+'" alt="" draggable="false">':esc(nm?initials(nm):'•'))+'</div>'+(nm?'<span class="tn">'+esc(nm)+'</span>':'')+'</div>';
+  placeTok(t);
+}
+function applyMapState(){
+  if(!isMap()) return;
+  Object.keys(tokEls).forEach(id=>tokEls[id].classList.toggle('sel',S.selKind==='tok'&&S.sel===id));
+}
+function focusTok(id){
+  const t=tokById(id); if(!t) return;
+  const R=stage.getBoundingClientRect(),k=Math.max(S.view.k,.9);
+  setView(R.width/2-t.x*k,(R.height-110)/2-t.y*k,k,true);
+}
+function mapOffToast(){ toast('O mapa da mesa ainda não foi ligado no Supabase. Falta rodar o sql/quadro-mapa.sql.'); }
+function renderMapDock(){
+  let h='';
+  const m=curMap();
+  if(S.selKind==='tok'&&S.sel&&tokById(S.sel)){
+    const t=tokById(S.sel);
+    h='<div class="dk-t"><span>'+esc(t.name||'Peça sem nome')+'</span><button class="ib sm" type="button" data-act="desel" aria-label="Soltar seleção"><svg class="ic"><use href="#i-close"/></svg></button></div>'+
+      (isRO()?'<div class="dk-acts two">'+act('tzoom','i-zoom','Centralizar')+act('fit','i-fit','Enquadrar')+'</div>'
+             :'<div class="dk-acts three">'+act('tedit','i-edit','Editar')+act('tzoom','i-zoom','Centralizar')+act('tdel','i-trash','Tirar')+'</div>');
+  } else if(isRO()||(isMesa()&&M.mapOff)){
+    h='<div class="dk-idle"><button class="btn" type="button" data-act="fit" style="flex:1"><svg class="ic"><use href="#i-fit"/></svg>Enquadrar</button></div>';
+  } else if(!m){
+    h='<div class="dk-idle"><button class="btn pri" type="button" data-act="maps"><svg class="ic"><use href="#i-plus"/></svg>Pôr mapa</button></div>';
+  } else {
+    h='<div class="dk-idle"><button class="btn pri" type="button" data-act="tnew"><svg class="ic"><use href="#i-plus"/></svg>Nova peça</button>'+
+      '<button class="btn" type="button" data-act="maps">Mapas</button>'+
+      '<button class="ib" type="button" data-act="fit" aria-label="Enquadrar o mapa"><svg class="ic"><use href="#i-fit"/></svg></button></div>';
+  }
+  dockin.innerHTML=h;
+}
+function addTok(){
+  if(isRO()) return;
+  if(isMesa()&&M.mapOff){ mapOffToast(); return; }
+  const m=curMap(); if(!m){ openMaps(); return; }
+  if(S.board.tokens.length>=TOKMAX){ toast('Chegou no limite de peças. Tire alguma antes.'); return; }
+  pushUndo();
+  const ctr=viewCenter(),n=S.board.tokens.filter(t=>t.map===m.id).length;
+  const t={id:uid(),map:m.id,name:'',color:TOK_COLORS[n%TOK_COLORS.length],img:'',
+    x:Math.round(clamp(ctr.x,0,MAPW)+(Math.random()*30-15)),y:Math.round(clamp(ctr.y,0,mapH)+(Math.random()*30-15))};
+  S.board.tokens.push(t); renderTok(t); scheduleSave(true);
+  select('tok',t.id); openTok(t.id,true);
+}
+function deleteTok(id){
+  if(isRO()||!tokById(id)) return;
+  const mesa=isMesa(),gone={cards:[],links:[],maps:[],tokens:S.board.tokens.filter(t=>t.id===id)};
+  pushUndo();
+  S.board.tokens=S.board.tokens.filter(t=>t.id!==id); removeTokEl(id);
+  S.sel=null; S.selKind=null; scheduleSave(true); applyState(); renderDock();
+  toast('Peça tirada do mapa','Desfazer',mesa?()=>mesaRestore(gone):undo);
+}
+function openTok(id,isNew){
+  const t=tokById(id); if(!t||isRO()) return;
+  let began=!!isNew;
+  const begin=()=>{ if(!began){ pushUndo(); began=true; } };
+  const refresh=()=>{ renderTok(t); applyMapState(); renderDock(); scheduleSave(); };
+  openSheet('<div class="sh-h"><h2>Peça</h2>'+closeBtn()+'</div>'+
+    fld('t-name','Nome','<input id="t-name" type="text" maxlength="30" autocomplete="off" placeholder="Ex.: Abel, Thomas" value="'+esc(t.name)+'">')+
+    '<div class="fld"><span class="lab">Cor</span><div class="tchips" id="t-cols">'+TOK_COLORS.map(c=>'<button class="cc" type="button" data-col="'+c+'" aria-pressed="'+(c===t.color)+'" style="--c:'+c+'" aria-label="Cor '+c+'"></button>').join('')+'</div></div>'+
+    imgField('t-img',t.img,'Foto da peça (se quiser)')+
+    '<div class="sh-f"><button class="btn danger" type="button" id="t-del">Tirar do mapa</button><button class="btn pri" type="button" data-close>Pronto</button></div>',
+  {
+    onClose:()=>{ if(S.editingTok===id) S.editingTok=null; },
+    input:e=>{ if(e.target.id==='t-name'){ begin(); t.name=e.target.value; refresh(); } },
+    key:e=>{ if(e.key==='Enter'&&e.target.id==='t-name'){ e.preventDefault(); closeSheet(); } },
+    click:e=>{
+      const cc=e.target.closest('[data-col]');
+      if(cc){ begin(); t.color=cc.dataset.col; $$('#t-cols .cc').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.col===t.color))); refresh(); return; }
+      if(e.target.closest('#t-del')){ closeSheet(); deleteTok(t.id); }
+    }
+  });
+  S.editingTok=id;
+  bindImg('t-img',600,u=>{ begin(); t.img=u; refresh(); });
+  if(isNew){ const n=$('#t-name'); if(n) n.focus(); }
+}
+function addMap(name,img){
+  if(isRO()) return null;
+  if(isMesa()&&M.mapOff){ mapOffToast(); return null; }
+  if(S.board.maps.length>=MAPMAX){ toast('Chegou no limite de mapas. Exclua um antes.'); return null; }
+  pushUndo();
+  const ord=S.board.maps.reduce((a,m)=>Math.max(a,m.ord||0),0)+1;
+  const m={id:uid(),name:String(name||'').trim().slice(0,40)||('Mapa '+ord),img:img,ord:ord};
+  S.board.maps.push(m); S.curMap=m.id; S.fitMapPending=true; scheduleSave(true);
+  if(!isMap()) setMode('mapa'); else { saveMode(); renderMap(); }
+  if(S.editingMaps) refreshMapList();
+  return m;
+}
+function deleteMap(id){
+  if(isRO()||!mapById(id)) return;
+  const mesa=isMesa(),gone={cards:[],links:[],maps:S.board.maps.filter(m=>m.id===id),tokens:S.board.tokens.filter(t=>t.map===id)};
+  pushUndo();
+  S.board.maps=S.board.maps.filter(m=>m.id!==id);
+  S.board.tokens=S.board.tokens.filter(t=>t.map!==id);
+  if(S.curMap===id){ S.curMap=null; S.fitMapPending=true; saveMode(); }
+  S.sel=null; S.selKind=null; scheduleSave(true);
+  if(isMap()) renderMap();
+  if(S.editingMaps) refreshMapList();
+  toast('Mapa excluído','Desfazer',mesa?()=>mesaRestore(gone):undo);
+}
+function mapListHtml(){
+  const ms=sortedMaps(),cm=curMap();
+  if(!ms.length) return '<p class="help">Nenhum mapa ainda.</p>';
+  return ms.map(m=>'<div class="mrow'+(cm&&cm.id===m.id?' on':'')+'" data-mid="'+esc(m.id)+'">'+
+    '<input type="text" maxlength="40" data-mname value="'+esc(m.name)+'" aria-label="Nome do mapa">'+
+    '<button class="btn sm" type="button" data-mshow>Ver</button>'+
+    '<button class="btn sm danger" type="button" data-mdel>Excluir</button></div>').join('');
+}
+function refreshMapList(){ const l=$('#m-list'); if(l&&!l.contains(document.activeElement)) l.innerHTML=mapListHtml(); }
+function openMaps(){
+  if(isRO()) return;
+  const has=(S.board.maps||[]).some(m=>m.img===PRESET_MAP.img);
+  const off=isMesa()&&M.mapOff;
+  openSheet('<div class="sh-h"><h2>Mapas</h2>'+closeBtn()+'</div>'+
+    (off?'<p class="err" style="margin:0 0 14px">O mapa da mesa ainda não foi ligado no Supabase. O mestre precisa rodar o sql/quadro-mapa.sql uma vez.</p>':'')+
+    '<div class="maplist" id="m-list">'+mapListHtml()+'</div>'+
+    fld('m-new','Nome do mapa novo (se quiser)','<input id="m-new" type="text" maxlength="40" autocomplete="off" placeholder="Ex.: Cine Rex por dentro">')+
+    '<div class="mlist">'+
+      (has?'':'<button class="btn" type="button" data-madd="cidade">Mapa da cidade</button>')+
+      '<label class="btn" id="m-up">Enviar imagem do mapa<input type="file" accept="image/*" class="vh" id="m-file"></label>'+
+      '<button class="btn" type="button" data-madd="link">Colar link de imagem</button>'+
+    '</div>'+
+    '<div class="imglink" id="m-link" hidden><input type="url" inputmode="url" placeholder="https://…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Link da imagem do mapa"><button class="btn sm pri" type="button" data-madd="ok">Usar</button></div>'+
+    '<p class="help" id="m-msg">Serve foto de um mapa desenhado no papel, ou o link de uma imagem (por exemplo, um mapa copiado do Escudo).'+(isMesa()?' Os mapas e as peças aparecem pra todo mundo da mesa.':'')+'</p>',
+  {
+    onClose:()=>{ S.editingMaps=false; },
+    input:e=>{
+      const n=e.target.closest('[data-mname]'); if(!n) return;
+      const m=mapById(n.closest('[data-mid]').dataset.mid); if(!m) return;
+      m.name=n.value.slice(0,40); scheduleSave(); buildZoneBar();
+    },
+    click:e=>{
+      const row=e.target.closest('[data-mid]'),msg=$('#m-msg');
+      if(row&&e.target.closest('[data-mshow]')){ S.curMap=row.dataset.mid; S.fitMapPending=true; closeSheet(); if(!isMap()) setMode('mapa'); else { saveMode(); renderMap(); } return; }
+      const del=row&&e.target.closest('[data-mdel]');
+      if(del){
+        if(del.dataset.armed){ deleteMap(row.dataset.mid); }
+        else { del.dataset.armed='1'; del.textContent='De novo'; setTimeout(()=>{ if(del.isConnected){ delete del.dataset.armed; del.textContent='Excluir'; } },3000); }
+        return;
+      }
+      const a=e.target.closest('[data-madd]'); if(!a) return;
+      const nm=$('#m-new').value;
+      if(a.dataset.madd==='cidade'){ if(addMap(nm||PRESET_MAP.name,PRESET_MAP.img)) closeSheet(); }
+      else if(a.dataset.madd==='link'){ const l=$('#m-link'); l.hidden=false; $('input',l).focus(); }
+      else if(a.dataset.madd==='ok'){
+        const u=okImg($('#m-link input').value);
+        if(!u){ msg.textContent='Esse link não serve. Ele precisa começar com https:// e ser de uma imagem.'; msg.className='err'; return; }
+        if(addMap(nm,u)) closeSheet();
+      }
+    },
+    key:e=>{ if(e.key==='Enter'&&e.target.type==='url'){ e.preventDefault(); const ok=$('[data-madd="ok"]'); if(ok) ok.click(); } }
+  });
+  S.editingMaps=true;
+  const f=$('#m-file');
+  f.addEventListener('change',async()=>{
+    const file=f.files&&f.files[0]; if(!file) return;
+    if(off){ mapOffToast(); f.value=''; return; }
+    const msg=$('#m-msg'),up=$('#m-up');
+    msg.className='help'; msg.textContent='Enviando o mapa…'; up.classList.add('busy');
+    try{
+      const u=await uploadImg(file,2400);
+      const nm=$('#m-new')?$('#m-new').value:'';
+      if(addMap(nm,u)) closeSheet();
+    }catch(err){
+      if(msg.isConnected){ msg.className='err'; msg.textContent=upErrMsg(err); up.classList.remove('busy'); } else toast(upErrMsg(err));
+    }
+    f.value='';
+  });
 }
 
 /* ---------- versão do GitHub: o mesmo quadro da mesa, guardado no Supabase ---------- */
@@ -1404,9 +1795,12 @@ function askIdentity(){
 
 /* ---------- quadro da mesa: um só quadro, ao vivo, para todos ---------- */
 const M={db:null,user:null,room:null,uid:null,booted:false,boot:null,ro:false,live:false,loaded:false,fitted:false,
-  known:{c:new Map(),l:new Map()},q:new Map(),held:new Map(),inflight:null,running:false,
-  unsubs:[],unPeers:null,peers:[],names:{},sig:'',timer:0,dragT:0,ready:{c:false,l:false}};
-const COLL={c:'mesa-cards',l:'mesa-links'};
+  known:{c:new Map(),l:new Map(),m:new Map(),t:new Map()},q:new Map(),held:new Map(),inflight:null,running:false,
+  unsubs:[],unPeers:null,peers:[],names:{},sig:'',timer:0,dragT:0,ready:{c:false,l:false,m:false,t:false},mapOff:false};
+const COLL={c:'mesa-cards',l:'mesa-links',m:'mesa-maps',t:'mesa-tokens'};
+const KINDS4=()=>['c','l'].concat(M.mapOff?[]:['m','t']);
+const listOf=k=>k==='c'?S.board.cards:k==='l'?S.board.links:k==='m'?S.board.maps:S.board.tokens;
+const newKnown=()=>({c:new Map(),l:new Map(),m:new Map(),t:new Map()});
 const clone=o=>JSON.parse(JSON.stringify(o));
 function canon(v){
   if(v===undefined) return 'u';
@@ -1424,9 +1818,19 @@ function cleanCardDoc(o){
   let type=TYPES[o.type]?o.type:'pista'; if(type==='verdade') type='pista';
   const d={type:type,title:cstr(o.title,120),sub:cstr(o.sub,160),body:cstr(o.body,2000),foot:cstr(o.foot,400),tag:cstr(o.tag,40),
     rows:(Array.isArray(o.rows)?o.rows:[]).slice(0,12).map(r=>({s:cstr(r&&r.s,40),dt:cstr(r&&r.dt,3),i:cstr(r&&r.i,400)})),
-    x:clamp(cnum(o.x),-30000,30000),y:clamp(cnum(o.y),-30000,30000)};
+    x:clamp(cnum(o.x),-30000,30000),y:clamp(cnum(o.y),-30000,30000),img:okImg(o.img)};
   if(o.w) d.w=clamp(cnum(o.w),160,360);
   return d;
+}
+function cleanMapDoc(o){
+  if(!o||typeof o!=='object') return null;
+  const img=okImg(o.img); if(!img) return null;
+  return {name:cstr(o.name,40),img:img,ord:clamp(cnum(o.ord),0,9999)};
+}
+function cleanTokDoc(o){
+  if(!o||typeof o!=='object') return null;
+  const map=cstr(o.map,60); if(!map) return null;
+  return {map:map,name:cstr(o.name,30),color:okColor(o.color),img:okImg(o.img),x:clamp(cnum(o.x),-3000,6000),y:clamp(cnum(o.y),-3000,6000)};
 }
 function cleanLinkDoc(o){
   if(!o||typeof o!=='object') return null;
@@ -1436,10 +1840,12 @@ function cleanLinkDoc(o){
 }
 function docOf(k,o){
   if(k==='c'){
-    const d={type:o.type,title:o.title,sub:o.sub,body:o.body,foot:o.foot,tag:o.tag,rows:o.rows||[],x:o.x,y:o.y};
+    const d={type:o.type,title:o.title,sub:o.sub,body:o.body,foot:o.foot,tag:o.tag,rows:o.rows||[],x:o.x,y:o.y,img:o.img||''};
     if(o.w) d.w=o.w;
     return d;
   }
+  if(k==='m') return {name:o.name,img:o.img,ord:o.ord||0};
+  if(k==='t') return {map:o.map,name:o.name,color:o.color,img:o.img||'',x:o.x,y:o.y};
   return {a:o.a,b:o.b,label:o.label,kind:o.kind};
 }
 
@@ -1494,8 +1900,8 @@ async function openMesa(){
     const bk=makeSb(window.SB_CONFIG,ident);
     M.db=bk.db; M.user=bk.user; M.room=bk.room; M.sbClose=bk.close; M.uid=ident.id; M.ro=false; M.code=ident.code;
   }
-  const b={id:'mesa',name:'Quadro da mesa',mode:'mesa',cards:[],links:[],zones:[],updated:0};
-  M.known={c:new Map(),l:new Map()}; M.held.clear(); M.loaded=false; M.fitted=false; M.ready={c:false,l:false};
+  const b={id:'mesa',name:'Quadro da mesa',mode:'mesa',cards:[],links:[],zones:[],maps:[],tokens:[],updated:0};
+  M.known=newKnown(); M.held.clear(); M.loaded=false; M.fitted=false; M.ready={c:false,l:false,m:false,t:false}; M.mapOff=false;
   M.peers=[]; M.sig=''; S.ghost={};
   await openBoard(b);
   if(S.board!==b) return;
@@ -1515,7 +1921,14 @@ function mesaLeave(){
 function note(msg){ const n=$('#liveNote'); n.textContent=msg||''; n.hidden=!msg; }
 function setLive(txt){ $('#bMode').textContent='Mesa · '+txt+(M.ro?' · só leitura':''); }
 function refreshNote(){
-  if(!isMesa()||!M.live||!M.loaded) return;
+  if(!S.board) return;
+  if(isMap()){
+    if(isMesa()&&!M.mapOff&&(!M.loaded||!M.ready.m)) return;
+    note(curMap()?'':(isMesa()&&M.mapOff?'O mapa da mesa ainda não foi ligado no Supabase. O mestre precisa rodar o sql/quadro-mapa.sql uma vez.':(isRO()?'Nenhum mapa ainda.':'Nenhum mapa ainda. Toque em Pôr mapa, embaixo.')));
+    return;
+  }
+  if(!isMesa()){ note(''); return; }
+  if(!M.live||!M.loaded) return;
   note(S.board.cards.length?'':(M.ro?'O quadro ainda está vazio.':(M.sbMode?'O quadro da mesa está vazio. Toque em Novo cartão, ou abra o menu e adicione os cartões iniciais.':'O quadro da mesa está vazio. Toque em Novo cartão pra começar.')));
 }
 
@@ -1524,14 +1937,16 @@ function mesaConnect(){
   setLive('conectando');
   clearTimeout(M.timer);
   M.timer=setTimeout(()=>{ if(M.live&&!M.loaded){ setLive('sem resposta'); note('A mesa ainda não respondeu. Continuo tentando.'); } },10000);
-  const sub=k=>M.db.collection(COLL[k]).onSnapshot(snap=>{
+  const sub=(k,onErr)=>M.db.collection(COLL[k]).onSnapshot(snap=>{
     if(!isMesa()||!M.live) return;
     snap.docChanges().forEach(ch=>applyChange(k,ch));
     applyState();
-    if(!snap.metadata.fromCache&&!M.ready[k]){ M.ready[k]=true; if(M.ready.c&&M.ready.l) mesaLoaded(); }
+    if(!snap.metadata.fromCache&&!M.ready[k]){ M.ready[k]=true; if((k==='c'||k==='l')&&M.ready.c&&M.ready.l) mesaLoaded(); }
     refreshNote();
-  },mesaErr);
-  M.unsubs=[sub('c'),sub('l')];
+  },onErr||mesaErr);
+  /* mapas e peças: se as tabelas ainda não existem, o quadro continua funcionando sem o mapa */
+  const mapErr=()=>{ M.mapOff=true; if(isMesa()&&isMap()){ refreshNote(); renderDock(); } };
+  M.unsubs=[sub('c'),sub('l'),sub('m',mapErr),sub('t',mapErr)];
   mesaRoom();
 }
 function mesaLoaded(){
@@ -1540,7 +1955,7 @@ function mesaLoaded(){
   fontsReady().then(()=>{
     if(!isMesa()) return;
     S.board.links.forEach(drawLink); applyState();
-    if(!M.fitted&&!(saved&&Number.isFinite(saved.k))) fitAll();
+    if(!M.fitted&&!isMap()&&!(saved&&Number.isFinite(saved.k))) fitAll();
     M.fitted=true;
   });
   if(M.ro) toast('Você só pode olhar este quadro. Peça acesso de Colaborador pra mexer.');
@@ -1588,6 +2003,20 @@ function upsertLocal(k,id,raw){
     mergeInto(c,d,known,id,()=>{ renderCard(c); updateLinksOf(id); if(S.sel===id) renderDock(); });
     return;
   }
+  if(k==='m'){
+    const d=cleanMapDoc(raw); if(!d) return;
+    let m=mapById(id);
+    if(!m){ m=Object.assign({id:id},clone(d)); b.maps.push(m); known.set(id,clone(d)); mapsChanged(); return; }
+    mergeInto(m,d,known,id,mapsChanged);
+    return;
+  }
+  if(k==='t'){
+    const d=cleanTokDoc(raw); if(!d) return;
+    let t=tokById(id);
+    if(!t){ t=Object.assign({id:id},clone(d)); b.tokens.push(t); known.set(id,clone(d)); renderTok(t); return; }
+    mergeInto(t,d,known,id,()=>{ renderTok(t); applyMapState(); if(S.sel===id) renderDock(); });
+    return;
+  }
   const d=cleanLinkDoc(raw); if(!d) return;
   let l=b.links.find(x=>x.id===id);
   if(!l){
@@ -1599,6 +2028,18 @@ function upsertLocal(k,id,raw){
 function removeLocal(k,id){
   const b=S.board; if(!b) return;
   M.known[k].delete(id);
+  if(k==='m'){
+    if(!mapById(id)) return;
+    b.maps=b.maps.filter(m=>m.id!==id);
+    mapsChanged(); return;
+  }
+  if(k==='t'){
+    if(!tokById(id)) return;
+    b.tokens=b.tokens.filter(t=>t.id!==id); removeTokEl(id);
+    if(S.sel===id){ S.sel=null; S.selKind=null; }
+    if(S.editingTok===id){ closeSheet(); toast('Outra pessoa tirou essa peça do mapa'); }
+    applyState(); renderDock(); return;
+  }
   if(k==='c'){
     if(!cardById(id)) return;
     b.links.filter(l=>l.a===id||l.b===id).forEach(l=>{ removeLinkEl(l.id); M.known.l.delete(l.id); });
@@ -1618,12 +2059,13 @@ function removeLocal(k,id){
 }
 async function mesaResync(){
   try{
-    const r=await Promise.all([M.db.collection(COLL.c).get(),M.db.collection(COLL.l).get()]);
+    const ks=KINDS4();
+    const r=await Promise.all(ks.map(k=>M.db.collection(COLL[k]).get()));
     if(!isMesa()) return;
-    S.board.cards=[]; S.board.links=[]; M.known={c:new Map(),l:new Map()}; M.q.clear(); M.held.clear();
+    S.board.cards=[]; S.board.links=[]; S.board.maps=[]; S.board.tokens=[]; M.known=newKnown(); M.q.clear(); M.held.clear();
     rebuildLayers();
-    r[0].docs.forEach(d=>upsertLocal('c',d.id,d.data()));
-    r[1].docs.forEach(d=>upsertLocal('l',d.id,d.data()));
+    ks.forEach((k,i)=>r[i].docs.forEach(d=>upsertLocal(k,d.id,d.data())));
+    if(isMap()) renderMap();
     applyState(); renderDock(); refreshNote();
   }catch(e){}
 }
@@ -1631,8 +2073,8 @@ async function mesaResync(){
 /* ---------- o que eu faço: compara com o último estado conhecido e grava só a diferença ---------- */
 function mesaPush(){
   if(!M.db||M.ro||!isMesa()) return;
-  ['c','l'].forEach(k=>{
-    const list=k==='c'?S.board.cards:S.board.links,known=M.known[k],seen=new Set();
+  KINDS4().forEach(k=>{
+    const list=listOf(k),known=M.known[k],seen=new Set();
     list.forEach(o=>{
       seen.add(o.id);
       const d=docOf(k,o),kn=known.get(o.id);
@@ -1643,6 +2085,7 @@ function mesaPush(){
     });
     Array.from(known.keys()).forEach(id=>{ if(!seen.has(id)){ known.delete(id); enqueue(k,id,{op:'delete'}); } });
   });
+  refreshNote();
   drain();
 }
 function enqueue(k,id,op){
@@ -1708,6 +2151,9 @@ function mesaRestore(gone){
   if(!isMesa()||!gone||M.ro) return;
   gone.cards.forEach(c=>{ if(!cardById(c.id)){ S.board.cards.push(c); renderCard(c); } });
   gone.links.forEach(l=>{ if(cardById(l.a)&&cardById(l.b)&&!S.board.links.some(x=>x.id===l.id)){ S.board.links.push(l); drawLink(l); } });
+  (gone.maps||[]).forEach(m=>{ if(!mapById(m.id)) S.board.maps.push(m); });
+  (gone.tokens||[]).forEach(t=>{ if(!tokById(t.id)&&mapById(t.map)) S.board.tokens.push(t); });
+  if((gone.maps||[]).length||(gone.tokens||[]).length){ if(isMap()) renderMap(); }
   applyState(); renderDock(); scheduleSave(true);
 }
 
@@ -1838,14 +2284,16 @@ function startPinch(){
 }
 stage.addEventListener('pointerdown',e=>{
   if(e.pointerType==='mouse'&&e.button!==0) return;
+  if(e.target.closest&&e.target.closest('.modes,.zoomctl')) return;
   try{ stage.setPointerCapture(e.pointerId); }catch(err){}
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===2){ startPinch(); return; }
   if(ptrs.size>2) return;
   const t=e.target,ce=t.closest&&t.closest('.card'),te=t.closest&&t.closest('.thread');
   const id=ce?ce.dataset.id:null,c=id?cardById(id):null;
-  g={type:'press',pid:e.pointerId,sx:e.clientX,sy:e.clientY,moved:false,mode:null,card:id,thread:te?te.dataset.id:null,
-     v0:{tx:S.view.tx,ty:S.view.ty},p0:c?{x:c.x,y:c.y}:null,undone:false};
+  const tk=isMap()&&t.closest&&t.closest('.tok'),tid=tk?tk.dataset.id:null,tt=tid?tokById(tid):null;
+  g={type:'press',pid:e.pointerId,sx:e.clientX,sy:e.clientY,moved:false,mode:null,card:id,thread:te?te.dataset.id:null,tok:tt?tid:null,
+     v0:{tx:S.view.tx,ty:S.view.ty},p0:c?{x:c.x,y:c.y}:(tt?{x:tt.x,y:tt.y}:null),undone:false};
 });
 stage.addEventListener('pointermove',e=>{
   if(!ptrs.has(e.pointerId)) return;
@@ -1863,7 +2311,7 @@ stage.addEventListener('pointermove',e=>{
   if(!g.moved){
     if(Math.hypot(dx,dy)<7) return;
     g.moved=true;
-    g.mode=(g.card&&!S.linking&&!isRO())?'drag':'pan';
+    g.mode=(g.card&&!S.linking&&!isRO())?'drag':(g.tok&&!isRO())?'tdrag':'pan';
     if(g.mode==='pan') stage.classList.add('panning');
   }
   if(g.mode==='drag'){
@@ -1873,6 +2321,11 @@ stage.addEventListener('pointermove',e=>{
     delete S.ghost[c.id];
     placeCard(c); updateLinksOf(c.id);
     if(S.board.mode==='mesa') mesaDrag(c);
+  } else if(g.mode==='tdrag'){
+    const t=tokById(g.tok); if(!t) return;
+    if(!g.undone){ pushUndo(); g.undone=true; select('tok',t.id); }
+    t.x=Math.round(g.p0.x+dx/S.view.k); t.y=Math.round(g.p0.y+dy/S.view.k);
+    placeTok(t);
   } else {
     S.view.tx=g.v0.tx+dx; S.view.ty=g.v0.ty+dy; applyView();
   }
@@ -1886,9 +2339,9 @@ function endPtr(e){
   if(g.pid!==e.pointerId) return;
   const gg=g; g=null; stage.classList.remove('panning');
   if(gg.mode==='drag'&&S.board&&S.board.mode==='mesa') mesaDrag(null);
-  if(e.type==='pointercancel'){ if(gg.mode==='drag') scheduleSave(true); else saveViewSoon(); return; }
+  if(e.type==='pointercancel'){ if(gg.mode==='drag'||gg.mode==='tdrag') scheduleSave(true); else saveViewSoon(); return; }
   if(!gg.moved){ tapOn(gg); return; }
-  if(gg.mode==='drag') scheduleSave(true); else saveViewSoon();
+  if(gg.mode==='drag'||gg.mode==='tdrag') scheduleSave(true); else saveViewSoon();
 }
 stage.addEventListener('pointerup',endPtr);
 stage.addEventListener('pointercancel',endPtr);
@@ -1898,6 +2351,12 @@ stage.addEventListener('wheel',e=>{
   zoomAt(e.clientX,e.clientY,S.view.k*Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0015)));
 },{passive:false});
 function tapOn(gg){
+  if(gg.tok){
+    const now=Date.now();
+    if(S.lastTap&&S.lastTap.id===gg.tok&&now-S.lastTap.t<340){ S.lastTap=null; select('tok',gg.tok); focusTok(gg.tok); return; }
+    S.lastTap={id:gg.tok,t:now};
+    select('tok',gg.tok); return;
+  }
   if(gg.card){
     if(S.linking){ onLinkTarget(gg.card); return; }
     const now=Date.now();
@@ -1924,7 +2383,7 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
   else if((e.key==='Delete'||e.key==='Backspace')&&S.sel&&!isRO()){
     e.preventDefault();
-    if(S.selKind==='card') deleteCard(S.sel); else deleteLink(S.sel);
+    if(S.selKind==='card') deleteCard(S.sel); else if(S.selKind==='tok') deleteTok(S.sel); else deleteLink(S.sel);
   } else if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('card')){
     e.preventDefault(); select('card',e.target.dataset.id);
   }
@@ -1942,12 +2401,21 @@ function fontsReady(){
 }
 function buildZoneBar(){
   const b=S.board,master=b.mode==='mestre',has=!!(b.zones&&b.zones.length);
+  if(isMap()){
+    const cm=curMap();
+    $('#zbar').hidden=false; $('#bVeil').hidden=true;
+    $('#zones').innerHTML=sortedMaps().map(m=>'<button class="zchip'+(cm&&cm.id===m.id?' on':'')+'" type="button" data-map="'+esc(m.id)+'">'+esc(m.name||'Mapa')+'</button>').join('')+
+      (isRO()?'':'<button class="zchip add" type="button" data-maps>+ Mapa</button>');
+    return;
+  }
   $('#zbar').hidden=!(has||master);
   $('#zones').innerHTML=(b.zones||[]).map(z=>'<button class="zchip" type="button" data-z="'+esc(z.id)+'">'+esc(z.label)+'</button>').join('');
   $('#bVeil').hidden=!master;
   if(master) paintVeil();
 }
 async function openBoard(b){
+  if(!Array.isArray(b.maps)) b.maps=[];
+  if(!Array.isArray(b.tokens)) b.tokens=[];
   S.board=b; S.sel=null; S.selKind=null; S.linking=null; S.undo=[]; S.query=''; S.hidden=new Set(); S.lastTap=null;
   closeSheet(); updateUndo();
   $('#bUndo').hidden=b.mode==='mesa';
@@ -1973,16 +2441,20 @@ async function openBoard(b){
     initView();
     fontsReady().then(()=>{ if(S.board===b) b.links.forEach(drawLink); });
   }
+  const md=LS.get(K_V+b.id+':modo')||{};
+  S.curMap=typeof md.map==='string'?md.map:null;
+  if(md.mode==='mapa'&&S.board===b) setMode('mapa');
   const u=LS.get(K_UI)||{};
   if(S.masterUpdated){ S.masterUpdated=false; toast('Quadro do mestre atualizado. A versão anterior ficou guardada, no menu.'); }
   else if(!u.hint){ u.hint=1; LS.set(K_UI,u); toast('Arraste para andar, pince para aproximar. Toque num cartão para ligar com fio.'); }
 }
 function closeBoard(){
   if(!S.board) return;
-  flushSave(); LS.set(K_V+S.board.id,S.view);
+  flushSave(); LS.set(vkey(),S.view);
   if(S.board.mode==='mesa') mesaLeave();
-  closeSheet(); S.board=null; cardEls={}; linkEls={};
-  cl.innerHTML=''; th.innerHTML=''; zl.innerHTML=''; world.style.visibility='';
+  closeSheet(); S.board=null; cardEls={}; linkEls={}; tokEls={};
+  cl.innerHTML=''; th.innerHTML=''; zl.innerHTML=''; tl.innerHTML=''; world.style.visibility='';
+  showMode('quadro');
   $('#board').hidden=true; document.body.classList.remove('board-open');
 }
 $('#bBack').addEventListener('click',()=>go(S.playerOnly?'jogador':''));
@@ -1990,7 +2462,13 @@ $('#bUndo').addEventListener('click',undo);
 $('#bFilter').addEventListener('click',openFilter);
 $('#bMenu').addEventListener('click',openMenu);
 $('#bVeil').addEventListener('click',toggleSecret);
-$('#zones').addEventListener('click',e=>{ const b=e.target.closest('[data-z]'); if(b) viewOnZone(b.dataset.z,true); });
+$('#zones').addEventListener('click',e=>{
+  const b=e.target.closest('[data-z]'); if(b){ viewOnZone(b.dataset.z,true); return; }
+  const m=e.target.closest('[data-map]');
+  if(m){ S.curMap=m.dataset.map; S.sel=null; S.selKind=null; saveMode(); S.fitMapPending=true; renderMap(); return; }
+  if(e.target.closest('[data-maps]')) openMaps();
+});
+$('#modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'); if(b) setMode(b.dataset.mode); });
 window.addEventListener('pagehide',flushSave);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) flushSave(); });
 
@@ -2007,7 +2485,8 @@ function loadMaster(){
 function loadPlayer(id){
   const s=LS.get(K_B+id);
   if(!s||!Array.isArray(s.cards)||!Array.isArray(s.links)) return null;
-  if(!s.zones) s.zones=[]; s.mode='jogador'; return s;
+  if(!s.zones) s.zones=[]; if(!Array.isArray(s.maps)) s.maps=[]; if(!Array.isArray(s.tokens)) s.tokens=[];
+  s.mode='jogador'; return s;
 }
 function renderHome(){
   renderTDoor();

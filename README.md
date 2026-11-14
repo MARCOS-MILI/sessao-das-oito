@@ -7,7 +7,16 @@ Quadro de investigação da mesa de RPG (Coxilha Seca, novembro de 1978).
 - `pecas/`: imagens que vão pros jogadores (cartazes, ingresso, caderno, etiquetas, mapas dos jogadores).
 - `supabase.js`: biblioteca do Supabase (versão 2.119.0), usada pelo quadro da mesa, pela ficha e pelo terminal.
 - `comum/config.js`: endereço e chave do Supabase, num lugar só pra todas as páginas.
-- `sql/`: o que roda no SQL Editor do Supabase (`ficha-banco.sql`, `terminal-banco.sql` e `mesa-banco.sql`, a cópia de segurança do quadro da mesa).
+- `sql/`: o que roda no SQL Editor do Supabase (`ficha-banco.sql`, `terminal-banco.sql`, `mesa-banco.sql`, a cópia de segurança do quadro da mesa, e `quadro-mapa.sql`, que liga o mapa e as fotos).
+- `testes/`: teste do quadro com um Supabase de mentira (`node testes/quadro-mapa.test.js`, com o site rodando em `localhost:8802`).
+
+## Mapa e fotos no quadro
+
+No alto do quadro tem a chave **Quadro | Mapa**. No mapa dá pra pôr o mapa da cidade ou qualquer outro (foto enviada
+ou link de imagem) e pôr peças com nome, cor e foto, que se arrastam. Os cartões também aceitam foto.
+No quadro da mesa ao vivo, mapas e peças aparecem pra todo mundo. Pra isso funcionar, rodar uma vez
+`sql/quadro-mapa.sql` no SQL Editor do Supabase (cria as tabelas `mesa_maps` e `mesa_tokens` e o balde de fotos `quadro`).
+Sem ele, o quadro continua funcionando e o mapa avisa o que falta.
 
 O quadro do mestre abre com senha e fica só no aparelho. O quadro da mesa guarda os cartões e os fios
 no Supabase (tabelas `mesa_cards` e `mesa_links`), e cada mesa usa um código.
