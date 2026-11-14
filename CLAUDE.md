@@ -3,7 +3,8 @@
 Site que os jogadores abrem: quadro de investigação (`index.html`), fichas (`ficha.html`), terminal (`terminal.html`)
 e as peças (`pecas/`). HTML, CSS e JS puros, sem build. GitHub Pages a partir da `main`, pasta raiz.
 Banco: Supabase (plano grátis). Endereço e chave `publishable` só em `comum/config.js`. Ficha e terminal falam
-só por funções SQL; o quadro da mesa grava direto em `mesa_cards` e `mesa_links` (ver `sql/mesa-banco.sql`).
+só por funções SQL; o quadro da mesa grava direto em `mesa_cards`, `mesa_links`, `mesa_maps` e `mesa_tokens`
+(ver `sql/mesa-banco.sql` e `sql/quadro-mapa.sql`). Fotos enviadas vão pro balde público `quadro` do Storage.
 
 ## Decidido pelo Marcos
 - 14/11/2026: minigames ficam pra depois. Primeiro organizar o que já existe.
@@ -23,7 +24,9 @@ só por funções SQL; o quadro da mesa grava direto em `mesa_cards` e `mesa_lin
 - Nunca escrever senha (quadro, fichas, terminal) nem a chave `secret` do Supabase em arquivo nenhum.
 - Não mudar de lugar `index.html`, `ficha.html` e `terminal.html`: os jogadores já têm links salvos
   (por exemplo `ficha.html?j=CÓDIGO`). Coisa nova entra em pasta nova.
-- Testar no celular (largura 390 px) antes de subir: `python3 -m http.server` na pasta e abrir no Playwright.
+- Testar no celular (largura 390 px) antes de subir: `python3 -m http.server 8802` na pasta e abrir no Playwright.
+  O quadro tem teste pronto: `node testes/quadro-mapa.test.js` (usa `testes/stub-supabase.js` no lugar do Supabase,
+  com banco no localStorage e tempo real entre abas). Se mexer no quadro, rodar e ampliar esse teste.
 - O site irmão, só do mestre, é o repositório `MARCOS-MILI/ESCUDO-DO-MESTRE`.
 
 ## Quadro do mestre (atualizar)
