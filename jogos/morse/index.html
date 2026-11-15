@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>O Morse</title>
+<meta name="theme-color" content="#17201d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="../../comum/jogos.css">
+<style>
+.tx{display:grid;gap:10px}
+.ouvir{display:flex;gap:8px}
+.ouvir .btn:first-child{flex:1}
+.barra{height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden}
+.barra i{display:block;height:100%;width:0;background:var(--lamp)}
+.vel{display:flex;gap:6px}
+.vel button{appearance:none;flex:1;min-height:38px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ui-dim);font:600 14px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.vel button[aria-pressed="true"]{border-color:var(--lamp);color:var(--ui);background:var(--panel-2)}
+.papel{position:relative;min-height:150px;padding:18px 16px 16px;border-radius:4px;background:repeating-linear-gradient(to bottom,transparent 0 27px,rgba(63,111,150,.22) 27px 28px) 0 14px/100% 100% no-repeat,var(--paper);color:var(--ink);
+  font:400 22px/28px var(--f-display);letter-spacing:.08em;overflow-wrap:anywhere;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.papel .cur{color:#a5281a;font:700 24px/28px var(--f-body);letter-spacing:.12em}
+.papel .cur::after{content:"";display:inline-block;width:2px;height:22px;margin-left:3px;vertical-align:-3px;background:#a5281a;animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{opacity:0}}
+.papel .ph{color:var(--ink-soft);font:400 15px/1.45 var(--f-body);letter-spacing:0}
+.papel .w-ok{color:#1d6b2f;text-decoration:underline 2px rgba(29,107,47,.5)}
+.papel .w-no{color:#a5281a;text-decoration:line-through 2px rgba(165,40,26,.6)}
+.teclas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tecla{appearance:none;min-height:86px;border-radius:12px;border:1px solid #4a443b;background:linear-gradient(#2c2823,#1f1c18);color:var(--ui);cursor:pointer;
+  box-shadow:0 4px 0 #0b0a08,inset 0 1px 0 rgba(255,255,255,.08);font:700 44px/1 var(--f-body);touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.tecla:active,.tecla.bate{transform:translateY(3px);box-shadow:0 1px 0 #0b0a08}
+.tecla small{display:block;margin-top:4px;font:600 12px/1 var(--f-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.teclas2{display:grid;grid-template-columns:1.3fr 1.3fr 1fr;gap:10px}
+.teclas2 .btn{min-height:54px}
+.tabela{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.tabela div{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#0e1513}
+.tabela b{font:400 18px/1 var(--f-display)}
+.tabela span{font:700 15px/1 var(--f-body);color:var(--lamp);letter-spacing:.08em}
+.telegrama{padding:18px 16px;border-radius:4px;background:#f1e7c9;color:var(--ink);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.telegrama .cab{display:flex;justify-content:space-between;margin:0 0 10px;padding-bottom:8px;border-bottom:2px solid #1c1b18;font:700 13px/1 var(--f-ui);letter-spacing:.2em;text-transform:uppercase}
+.telegrama p{margin:0;font:400 20px/1.45 var(--f-display);letter-spacing:.06em}
+.dica{margin-top:6px}
+details summary{cursor:pointer;color:var(--ui-dim);font:600 14px/1 var(--f-ui);letter-spacing:.14em;text-transform:uppercase;padding:8px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="voltar" href="../" aria-label="Voltar pros minigames">‹</a>
+  <div class="tt"><b>O Morse</b><small>Bloco de anotação</small></div>
+</header>
+<main class="wrap stack">
+  <p class="pdline" id="prev" hidden>Prévia do mestre: os jogadores ainda não ouvem nem conferem.</p>
+  <section class="card tx" id="tx">
+    <span class="lab">A transmissão</span>
+    <p class="help" id="tx-off" style="margin:0">Nenhuma transmissão captada ainda. O bloco funciona do mesmo jeito: bata o que você ouvir.</p>
+    <div id="tx-on" hidden class="tx">
+      <div class="ouvir"><button class="btn pri" type="button" id="ouvir">Ouvir a transmissão</button></div>
+      <div class="barra" aria-hidden="true"><i id="barra"></i></div>
+      <div class="vel" role="group" aria-label="Velocidade"><button type="button" data-v="1" aria-pressed="true">Normal</button><button type="button" data-v="0.6" aria-pressed="false">Devagar</button></div>
+    </div>
+  </section>
+
+  <div class="papel" id="papel" aria-live="polite"></div>
+  <p class="help" id="nota" style="margin:-4px 0 0" hidden></p>
+
+  <div class="teclas">
+    <button class="tecla" type="button" data-s="." aria-label="Ponto">·<small>ponto</small></button>
+    <button class="tecla" type="button" data-s="-" aria-label="Traço">—<small>traço</small></button>
+  </div>
+  <div class="teclas2">
+    <button class="btn" type="button" id="letra">Fim da letra</button>
+    <button class="btn" type="button" id="espaco">Espaço</button>
+    <button class="btn" type="button" id="apaga" aria-label="Apagar">⌫</button>
+  </div>
+  <p class="help" style="margin:0">Bata os pontos e traços de uma letra e toque em <b>Fim da letra</b>. Entre palavras, toque em <b>Espaço</b>.</p>
+
+  <section id="conf" hidden class="stack">
+    <p class="pdline" id="pd" style="margin:0"></p>
+    <button class="btn pri wide" type="button" id="conferir">Conferir a mensagem</button>
+  </section>
+  <section id="feito" hidden></section>
+
+  <details>
+    <summary>Tabela do Morse</summary>
+    <div class="tabela" id="tabela"></div>
+  </details>
+  <button class="btn sm danger" type="button" id="limpa" style="justify-self:start">Limpar o bloco</button>
+</main>
+
+<script src="../../comum/config.js"></script>
+<script src="../../supabase.js"></script>
+<script src="../../comum/jogos.js"></script>
+<script>
+(function(){
+'use strict';
+var $=J.$,esc=J.esc,K='sdo_morse_bloco';
+var B=(function(){ try{ var o=JSON.parse(J.LS.get(K)||'null'); if(o&&Array.isArray(o.w)&&typeof o.c==='string') return o; }catch(e){} return {w:[[]],c:''}; })();
+var T={p:'',wpm:10,ok:false,previa:false,certo:null,marcas:null};
+var salva=function(){ J.LS.set(K,JSON.stringify(B)); };
+
+/* ---------- o papel ---------- */
+function letras(){ return B.w.map(function(w){ return w.map(function(c){ return J.decodifica(c); }).join(''); }); }
+function desenha(){
+  var ws=letras(),vazio=!ws.join('')&&!B.c;
+  var h=vazio?'<span class="ph">As letras aparecem aqui.</span>':ws.map(function(w,i){
+    var cls=T.marcas&&w?(T.marcas[i]?' class="w-ok"':' class="w-no"'):'';
+    return '<span'+cls+'>'+esc(w)+'</span>';
+  }).join(' ');
+  if(!vazio||B.c) h+='<span class="cur">'+esc(B.c.replace(/\./g,'·').replace(/-/g,'—'))+'</span>';
+  $('#papel').innerHTML=h;
+}
+function fechaLetra(){ if(B.c){ B.w[B.w.length-1].push(B.c); B.c=''; } }
+function bate(s){
+  if(B.c.length>=7) return;
+  B.c+=s; T.marcas=null; $('#nota').hidden=true; salva(); desenha();
+  var ac=J.audio(); if(ac){ var g=ac.createGain(); g.gain.value=.25; g.connect(ac.destination); J.bipe(ac,g,ac.currentTime+.01,700,s==='-'?.27:.09,.6); }
+}
+document.querySelectorAll('[data-s]').forEach(function(b){
+  b.addEventListener('click',function(){ bate(b.dataset.s); });
+});
+$('#letra').onclick=function(){ fechaLetra(); T.marcas=null; salva(); desenha(); };
+$('#espaco').onclick=function(){ fechaLetra(); if(B.w[B.w.length-1].length) B.w.push([]); T.marcas=null; salva(); desenha(); };
+$('#apaga').onclick=function(){
+  if(B.c) B.c=B.c.slice(0,-1);
+  else { var w=B.w[B.w.length-1]; if(w.length) w.pop(); else if(B.w.length>1) B.w.pop(); }
+  T.marcas=null; salva(); desenha();
+};
+$('#limpa').onclick=function(){
+  var b=this;
+  if(!b.dataset.armed){ b.dataset.armed='1'; b.textContent='Toque de novo pra limpar'; setTimeout(function(){ delete b.dataset.armed; b.textContent='Limpar o bloco'; },3000); return; }
+  B={w:[[]],c:''}; T.marcas=null; salva(); desenha(); delete b.dataset.armed; b.textContent='Limpar o bloco';
+};
+document.addEventListener('keydown',function(e){
+  if(/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='.'){ e.preventDefault(); bate('.'); }
+  else if(e.key==='-'){ e.preventDefault(); bate('-'); }
+  else if(e.key==='Enter'){ e.preventDefault(); $('#letra').click(); }
+  else if(e.key===' '){ e.preventDefault(); $('#espaco').click(); }
+  else if(e.key==='Backspace'){ e.preventDefault(); $('#apaga').click(); }
+});
+$('#tabela').innerHTML=Object.keys(J.TAB).filter(function(k){ return /[A-Z0-9]/.test(k); }).map(function(k){
+  return '<div><b>'+k+'</b><span>'+J.TAB[k].replace(/\./g,'·').replace(/-/g,'—')+'</span></div>';
+}).join('');
+
+/* ---------- ouvir ---------- */
+var toca=null,vel=1,tBar=0;
+function para(){ if(toca){ toca.para(); toca=null; } cancelAnimationFrame(tBar); $('#barra').style.width='0'; $('#ouvir').textContent='Ouvir a transmissão'; }
+$('#ouvir').onclick=function(){
+  if(toca){ para(); return; }
+  var ac=J.audio(); if(!ac||!T.p) return;
+  var g=ac.createGain(); g.gain.value=.4; g.connect(ac.destination);
+  var t0=ac.currentTime+.25,m=J.tocaMorse(ac,T.p,T.wpm*vel,g,t0,750);
+  toca=m; this.textContent='Parar';
+  (function anda(){
+    if(toca!==m) return;
+    var p=(ac.currentTime-t0)/(m.fim-t0);
+    $('#barra').style.width=Math.max(0,Math.min(100,p*100))+'%';
+    if(p>=1){ para(); return; }
+    tBar=requestAnimationFrame(anda);
+  })();
+};
+document.querySelectorAll('[data-v]').forEach(function(b){
+  b.onclick=function(){ vel=+b.dataset.v; document.querySelectorAll('[data-v]').forEach(function(x){ x.setAttribute('aria-pressed',String(x===b)); }); if(toca){ para(); $('#ouvir').click(); } };
+});
+
+/* ---------- conferir ---------- */
+$('#conferir').onclick=async function(){
+  fechaLetra(); salva();
+  var certo=J.soLetras(J.decodifica(T.p)),meu=J.soLetras(letras().join(' '));
+  if(!meu){ J.toast('Anote alguma coisa antes de conferir.'); desenha(); return; }
+  if(meu===certo){ acertou(); return; }
+  var cw=certo.split(' '),mw=letras().map(function(w){ return J.soLetras(w); });
+  var k=0; T.marcas=mw.map(function(w){ if(!w) return null; var ok=w===cw[k]; k++; return ok; });
+  var bons=T.marcas.filter(Boolean).length;
+  desenha();
+  $('#papel').classList.remove('treme'); void $('#papel').offsetWidth; $('#papel').classList.add('treme');
+  J.carimbo('−1 PD');
+  this.disabled=true; var btn=this;
+  $('#nota').hidden=false; $('#nota').textContent=bons+' de '+cw.length+' palavras certas. As riscadas estão erradas.';
+  await J.perde1PD('Morse');
+  setTimeout(function(){ btn.disabled=false; },1200);
+};
+function acertou(){
+  J.LS.set(K+'_ok',T.p);
+  J.carimbo('RECEBIDO','ok');
+  mostraFeito();
+}
+function mostraFeito(){
+  var msg=J.decodifica(T.p);
+  $('#feito').hidden=false; $('#conf').hidden=true;
+  $('#feito').innerHTML='<div class="telegrama"><div class="cab"><span>Mensagem recebida</span><span>'+(T.wpm)+' ppm</span></div><p>'+esc(msg)+'</p></div>';
+}
+
+/* ---------- o que o mestre liberou ---------- */
+async function carrega(){
+  try{
+    var e=await J.estado(),m=e.morse||{},prev=false;
+    if(!m.liberado&&J.ehMestre()&&J.LS.get('sdo_mk')){
+      try{ var t=await J.rpc('sdo_m_j_ler',{p_senha:J.LS.get('sdo_mk')}); if(t.morse&&t.morse.publico&&t.morse.publico.morse){ m=Object.assign({},t.morse.publico); prev=true; } }catch(err){}
+    }
+    var ok=!!((m.liberado||prev)&&m.morse);
+    var novo=(m.morse||'')!==T.p;
+    T.p=m.morse||''; T.wpm=+m.wpm||10; T.ok=ok; T.previa=prev;
+    $('#prev').hidden=!prev; $('#tx-off').hidden=ok; $('#tx-on').hidden=!ok;
+    if(!ok){ $('#conf').hidden=true; $('#feito').hidden=true; para(); return; }
+    if(J.LS.get(K+'_ok')===T.p) mostraFeito();
+    else { $('#feito').hidden=true; $('#conf').hidden=false; if(novo) J.linhaPD($('#pd')); }
+  }catch(err){ $('#tx-off').textContent=J.erroTxt(err); }
+}
+desenha(); carrega();
+setInterval(function(){ if(!document.hidden&&!toca) carrega(); },20000);
+})();
+</script>
+</body>
+</html>

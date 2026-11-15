@@ -7,9 +7,12 @@ só por funções SQL; o quadro da mesa grava direto em `mesa_cards`, `mesa_link
 (ver `sql/mesa-banco.sql` e `sql/quadro-mapa.sql`). Fotos enviadas vão pro balde público `quadro` do Storage.
 
 ## Decidido pelo Marcos
-- 14/11/2026: minigames ficam pra depois. Primeiro organizar o que já existe.
-- Quando vierem, cada minigame entra em `jogos/<nome>/` e usa `comum/`. A resposta de enigma nunca fica
-  escrita no código (fica no banco ou em hash), porque o site é público.
+- Cada minigame entra em `jogos/<nome>/` e usa `comum/` (`comum/jogos.js` e `comum/jogos.css`). A resposta de enigma
+  nunca fica escrita no código, nem em teste: fica no banco (`sdo_jogos`, só sai a parte pública quando liberado).
+- 15/11/2026: feitos o rádio, o Morse e o projetor (com cadeado). Errar custa 1 PD, que o jogo tira sozinho da ficha
+  que está neste aparelho (`sdo_tok`), com Desfazer. Aparelho do mestre (`sdo_jogos_mestre`) não perde PD.
+- Ideias de minigame que ficaram pra depois: raspadinha da Censura, jornal com lupa, passar pelo bloqueio,
+  fingir que está afetado, central telefônica, rádio no ar entre sessões, mapa com névoa, TV fora do ar (divulgação).
 
 ## Como trabalhar com o Marcos
 - Ele escreve por voz no celular, em português do Brasil informal. Interpretar a intenção, não ler ao pé da letra.
@@ -27,6 +30,7 @@ só por funções SQL; o quadro da mesa grava direto em `mesa_cards`, `mesa_link
 - Testar no celular (largura 390 px) antes de subir: `python3 -m http.server 8802` na pasta e abrir no Playwright.
   O quadro tem teste pronto: `node testes/quadro-mapa.test.js` (usa `testes/stub-supabase.js` no lugar do Supabase,
   com banco no localStorage e tempo real entre abas). Se mexer no quadro, rodar e ampliar esse teste.
+  Os minigames têm `node testes/jogos.test.js` (senha do mestre no stub: "teste"; mensagem e código inventados).
 - O site irmão, só do mestre, é o repositório `MARCOS-MILI/ESCUDO-DO-MESTRE`.
 
 ## Quadro do mestre (atualizar)

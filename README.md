@@ -8,7 +8,9 @@ Quadro de investigação da mesa de RPG (Coxilha Seca, novembro de 1978).
 - `supabase.js`: biblioteca do Supabase (versão 2.119.0), usada pelo quadro da mesa, pela ficha e pelo terminal.
 - `comum/config.js`: endereço e chave do Supabase, num lugar só pra todas as páginas.
 - `sql/`: o que roda no SQL Editor do Supabase (`ficha-banco.sql`, `terminal-banco.sql`, `mesa-banco.sql`, a cópia de segurança do quadro da mesa, e `quadro-mapa.sql`, que liga o mapa e as fotos).
-- `testes/`: teste do quadro com um Supabase de mentira (`node testes/quadro-mapa.test.js`, com o site rodando em `localhost:8802`).
+- `jogos/`: minigames (rádio, Morse e projetor). Jogadores abrem `jogos/`; o mestre configura e libera em `jogos/?mestre`.
+- `comum/jogos.js` e `comum/jogos.css`: a base dos minigames (banco, Morse, som, aviso e o PD que sai da ficha).
+- `testes/`: teste do quadro com um Supabase de mentira (`node testes/quadro-mapa.test.js` e `node testes/jogos.test.js`, com o site rodando em `localhost:8802`).
 
 ## Mapa e fotos no quadro
 
@@ -47,3 +49,12 @@ Computador de cena que abre a sessão: papel de impressora, senha e arquivos que
 Imagens que podem ir pra mesa. O Escudo do Mestre copia os links daqui (aba Links), pra nenhum link mandado aos
 jogadores mostrar o endereço do Escudo. Peça nova pros jogadores entra aqui e em `img/pecas/` do Escudo.
 Mapas dos jogadores ficam como `mapa-jogadores-antes.webp` e `mapa-jogadores-depois.webp`.
+
+## Minigames (`jogos/`)
+
+- **O rádio:** gira a sintonia no meio do chiado até achar a transmissão (com assobio que fica grave perto da estação).
+- **O Morse:** bloco com botões de ponto e traço; as letras se montam sozinhas. Dá pra ouvir a transmissão limpa e conferir.
+- **O projetor:** contagem de cabeça de rolo (números que faltam viram emenda) e um cadeado que o mestre mostra quando quiser.
+- Errar no Morse ou no cadeado tira 1 PD da ficha que está aberta neste celular (com Desfazer). Fica no registro da ficha.
+- O mestre configura e libera cada jogo em `jogos/?mestre` (senha das fichas). A mensagem, os números e o código
+  ficam só no banco: rodar uma vez `sql/jogos-banco.sql` no SQL Editor do Supabase.
