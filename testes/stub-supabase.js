@@ -49,5 +49,31 @@
     },
     getPublicUrl(path){ return {data:{publicUrl:'https://stub-storage.test/'+bucket+'/'+path}}; }
   }; } };
-  window.supabase={createClient(){ return {from:q,channel:channel,removeChannel(ch){ for(let i=listeners.length-1;i>=0;i--) if(listeners[i].ch===ch) listeners.splice(i,1); },storage:storage}; }};
+  /* funções SQL (minigames e ficha), com a senha do mestre "teste" */
+  const J=()=>{ try{ return JSON.parse(localStorage.getItem('stub:jogos')||'{}'); }catch(e){ return {}; } };
+  const Jw=o=>localStorage.setItem('stub:jogos',JSON.stringify(o));
+  const F=()=>{ try{ return JSON.parse(localStorage.getItem('stub:fichas')||'{}'); }catch(e){ return {}; } };
+  const Fw=o=>localStorage.setItem('stub:fichas',JSON.stringify(o));
+  const IDS=['radio','morse','projetor'];
+  const chk=pw=>{ if(pw!==(window.__stubSenha||'teste')) throw {message:'senha_errada'}; };
+  const RPC={
+    sdo_j_ler(){ const j=J(),o={}; IDS.forEach(id=>{ const x=j[id]||{}; o[id]=x.liberado?Object.assign({},x.publico||{},{liberado:true}):{liberado:false}; }); return o; },
+    sdo_j_cadeado(a){ const x=J().projetor||{},sg=x.segredo||{},cod=String(sg.codigo||'');
+      if(!x.liberado||!cod) return {ok:false,fora:true};
+      return String(a.p_codigo||'').replace(/\D/g,'')===cod?{ok:true,texto:sg.dentro||'',img:sg.dentro_img||''}:{ok:false}; },
+    sdo_m_j_ler(a){ chk(a.p_senha); const j=J(),o={}; IDS.forEach(id=>{ const x=j[id]||{}; o[id]={liberado:!!x.liberado,publico:x.publico||{},segredo:x.segredo||{}}; }); return o; },
+    sdo_m_j_salvar(a){ chk(a.p_senha); const j=J(),x=j[a.p_id]||{liberado:false,publico:{},segredo:{}};
+      if(a.p_liberado!=null) x.liberado=a.p_liberado; if(a.p_publico!=null) x.publico=a.p_publico; if(a.p_segredo!=null) x.segredo=a.p_segredo;
+      j[a.p_id]=x; Jw(j); return {ok:true}; },
+    sdo_ler(a){ const f=F()[a.p_token]; if(!f) throw {message:'nao_encontrada'}; return {dados:f,atualizado_em:''}; },
+    sdo_salvar(a){ const fs=F(); if(!fs[a.p_token]) throw {message:'nao_encontrada'}; Object.assign(fs[a.p_token],a.p_patch); Fw(fs); return {ok:true}; }
+  };
+  function rpc(fn,args){
+    return Promise.resolve().then(()=>{
+      if(window.__stubNoJogos&&/^sdo_(j|m_j)_/.test(fn)) return {data:null,error:{code:'PGRST202',message:'Could not find the function public.'+fn+' in the schema cache'}};
+      if(!RPC[fn]) return {data:null,error:{code:'PGRST202',message:'Could not find the function public.'+fn}};
+      try{ return {data:JSON.parse(JSON.stringify(RPC[fn](args||{}))),error:null}; }catch(e){ return {data:null,error:{message:e.message||String(e),code:e.code}}; }
+    });
+  }
+  window.supabase={createClient(){ return {from:q,rpc:rpc,channel:channel,removeChannel(ch){ for(let i=listeners.length-1;i>=0;i--) if(listeners[i].ch===ch) listeners.splice(i,1); },storage:storage}; }};
 })();

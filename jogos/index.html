@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Minigames da Sessão das Oito</title>
+<meta name="theme-color" content="#17201d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="../comum/jogos.css">
+<style>
+.jogos{display:grid;gap:12px}
+.jogo{display:flex;gap:14px;align-items:center;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--ui);text-decoration:none}
+.jogo:hover{border-color:var(--lamp)}
+.jogo .ico{flex:none;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);color:var(--lamp)}
+.jogo .ico svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.jogo b{display:block;font:400 19px/1.15 var(--f-display)}
+.jogo span{display:block;margin-top:4px;font:400 13.5px/1.4 var(--f-body);color:var(--ui-dim)}
+.vazio{padding:22px 16px;border:1px dashed var(--line);border-radius:8px;color:var(--mute);text-align:center}
+.jogo .vivo{display:inline-flex;align-items:center;gap:7px;margin:0 0 6px;font:600 12px/1 var(--f-ui);letter-spacing:.16em;text-transform:uppercase;color:#86cfc7}
+.jogo .vivo::before{content:"";width:8px;height:8px;border-radius:50%;background:#5fe0b0;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+/* painel do mestre */
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
+.mhead h2{margin:0}
+.tog{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ui-dim);font:600 13px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.tog::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mute)}
+.tog[aria-pressed="true"]{border-color:#2f8a6c;color:#9fe6c6;background:rgba(95,224,176,.08)}
+.tog[aria-pressed="true"]::before{background:#5fe0b0;box-shadow:0 0 8px #5fe0b0}
+.fld{display:grid;gap:6px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;min-width:44px;min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ui-dim);font:600 15px/1 var(--f-ui);letter-spacing:.06em;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--panel-2);border-color:var(--lamp);color:var(--ui)}
+.num .chip{font:400 20px/1 var(--f-display);min-width:42px}
+.num .chip[aria-pressed="false"]{text-decoration:line-through;opacity:.55}
+.prev img{display:block;max-width:100%;max-height:160px;margin:0 0 8px;border:1px solid var(--line);border-radius:4px}
+.ok{color:var(--ok)}
+.salvo{font:600 12px/1 var(--f-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+audio{width:100%;margin:6px 0 8px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="voltar" href="../" aria-label="Voltar pro quadro">‹</a>
+  <div class="tt"><b>Minigames</b><small id="sub">Sessão das Oito</small></div>
+</header>
+<main class="wrap" id="app"><p class="help">Carregando…</p></main>
+
+<script src="../comum/config.js"></script>
+<script src="../supabase.js"></script>
+<script src="../comum/jogos.js"></script>
+<script>
+(function(){
+'use strict';
+var $=J.$,esc=J.esc,app=$('#app');
+var JOGOS=[
+  {id:'radio',url:'radio/',nome:'O rádio',txt:'Gire a sintonia e procure alguma coisa no meio do chiado.',ico:'<svg viewBox="0 0 32 32"><rect x="4" y="10" width="24" height="17" rx="3"/><path d="M9 10L22 4"/><circle cx="21" cy="18.5" r="4"/><path d="M8 15h6M8 19h6M8 23h6"/></svg>'},
+  {id:'morse',url:'morse/',nome:'O Morse',txt:'Bata os pontos e traços que você ouvir. As letras se montam sozinhas.',ico:'<svg viewBox="0 0 32 32"><circle cx="8" cy="16" r="2.5" fill="currentColor"/><path d="M14 16h12"/><path d="M5 25h22M7 25v-3h18v3"/></svg>'},
+  {id:'projetor',url:'projetor/',nome:'O projetor',txt:'Ligue o projetor e preste atenção na contagem.',ico:'<svg viewBox="0 0 32 32"><circle cx="10" cy="9" r="5"/><circle cx="21" cy="9" r="4"/><rect x="5" y="15" width="18" height="10" rx="2"/><path d="M23 18l5-3v10l-5-3"/></svg>'}
+];
+var mestre=/[?&]mestre\b/.test(location.search);
+
+/* ---------- jogadores ---------- */
+async function vistaJogadores(){
+  var e;
+  try{ e=await J.estado(); }
+  catch(err){ app.innerHTML='<h1>Minigames</h1><p class="err">'+esc(J.erroTxt(err))+'</p>'; return; }
+  var vivos=JOGOS.filter(function(j){ return e[j.id]&&e[j.id].liberado; });
+  app.innerHTML='<h1>Minigames</h1><p class="lede">Os jogos aparecem aqui quando o mestre liberar.</p><p class="pdline" id="pd"></p>'+
+    (vivos.length?'<div class="jogos">'+vivos.map(function(j){
+      return '<a class="jogo" href="'+j.url+'"><span class="ico">'+j.ico+'</span><span><span class="vivo">No ar</span><b>'+esc(j.nome)+'</b><span>'+esc(j.txt)+'</span></span></a>';
+    }).join('')+'</div>':'<div class="vazio">Nada no ar agora.<br>Deixe esta página aberta: quando o mestre liberar, o jogo aparece.</div>');
+  J.linhaPD($('#pd'));
+}
+
+/* ---------- mestre ---------- */
+var M={pw:null,d:null};
+function vistaLogin(msg){
+  app.innerHTML='<h1>Minigames</h1><p class="lede">Painel do mestre. A senha é a mesma das fichas.</p>'+
+    '<div class="card"><div class="fld"><label class="lab" for="pw">Senha do mestre</label><input id="pw" type="password" autocomplete="current-password"></div>'+
+    '<label class="help" style="display:flex;gap:8px;align-items:center;margin:0 0 12px"><input type="checkbox" id="keep" checked> Lembrar neste aparelho</label>'+
+    '<p class="err" id="lerr">'+esc(msg||'')+'</p><button class="btn pri wide" type="button" id="go">Entrar</button></div>';
+  $('#go').onclick=function(){ entrar($('#pw').value,$('#keep').checked); };
+  $('#pw').onkeydown=function(ev){ if(ev.key==='Enter') entrar($('#pw').value,$('#keep').checked); };
+  $('#pw').focus();
+}
+async function entrar(pw,keep){
+  var b=$('#go'); if(b){ b.disabled=true; b.textContent='Conferindo…'; }
+  try{ M.d=await J.rpc('sdo_m_j_ler',{p_senha:pw}); }
+  catch(err){
+    if(/senha_errada/.test(err.msg||'')){ J.LS.del('sdo_mk'); vistaLogin('Senha errada.'); }
+    else vistaLogin(J.erroTxt(err));
+    return;
+  }
+  M.pw=pw; if(keep) J.LS.set('sdo_mk',pw);
+  J.LS.set('sdo_jogos_mestre','1');
+  painel();
+}
+var jogo=function(id){ return (M.d&&M.d[id])||{liberado:false,publico:{},segredo:{}}; };
+async function salvar(id,lib,pub,seg){
+  await J.rpc('sdo_m_j_salvar',{p_senha:M.pw,p_id:id,p_liberado:lib,p_publico:pub,p_segredo:seg});
+  M.d=await J.rpc('sdo_m_j_ler',{p_senha:M.pw});
+}
+function tog(id){ var on=jogo(id).liberado; return '<button class="tog" type="button" data-tog="'+id+'" aria-pressed="'+on+'">'+(on?'No ar':'Fora do ar')+'</button>'; }
+function painel(){
+  var r=jogo('radio'),m=jogo('morse'),p=jogo('projetor');
+  var rp=r.publico||{},mp=m.publico||{},ms=m.segredo||{},pp=p.publico||{},ps=p.segredo||{};
+  var mostra=Array.isArray(pp.mostra)?pp.mostra:[8,7,6,5,4,3,2];
+  var wpm=+mp.wpm||10;
+  $('#sub').textContent='Painel do mestre';
+  app.innerHTML='<h1>Minigames</h1><p class="lede">Configure e libere cada jogo na hora da cena. O que é resposta fica só no banco, nunca no site.</p>'+
+  '<p class="pdline">Este aparelho ficou marcado como do mestre: errar aqui não tira PD de ninguém. Os jogadores abrem <b>jogos/</b> (sem o ?mestre).</p>'+
+  '<div class="stack">'+
+
+  '<section class="card"><h2>A mensagem em Morse</h2><p class="help" style="margin-top:0">Vale pro rádio e pro bloco do Morse. Letras sem acento; ponto, vírgula e interrogação também viram Morse.</p>'+
+    '<div class="fld"><label class="lab" for="m-txt">Mensagem</label><textarea id="m-txt" maxlength="400" spellcheck="false">'+esc(ms.texto||'')+'</textarea><span class="help" id="m-info"></span></div>'+
+    '<div class="fld"><span class="lab">Velocidade (palavras por minuto)</span><div class="chips" id="m-wpm">'+[6,8,10,12].map(function(v){ return '<button class="chip" type="button" data-wpm="'+v+'" aria-pressed="'+(v===wpm)+'">'+v+'</button>'; }).join('')+'</div></div>'+
+    '<div class="row"><button class="btn" type="button" id="m-ouvir">Ouvir</button><button class="btn pri" type="button" id="m-salvar">Salvar mensagem</button><span class="salvo" id="m-ok"></span></div></section>'+
+
+  '<section class="card"><div class="mhead"><h2>O rádio</h2>'+tog('radio')+'</div>'+
+    '<div class="fld"><label class="lab" for="r-f">Frequência da transmissão (kHz, de 540 a 1600)</label><input id="r-f" type="number" inputmode="numeric" min="540" max="1600" value="'+esc(rp.freq||'')+'" placeholder="Ex.: 1250"></div>'+
+    '<div class="fld"><span class="lab">Áudio do programa (se quiser)</span>'+
+      (rp.audio?'<audio controls preload="none" src="'+esc(rp.audio)+'"></audio>':'<span class="help">Sem áudio: o rádio toca só o Morse no meio do chiado. Com o áudio gravado (locutor com o Morse por baixo), ele toca o áudio.</span>')+
+      '<div class="row"><label class="btn sm">Enviar áudio<input type="file" accept="audio/*" class="vh" id="r-file"></label>'+(rp.audio?'<button class="btn sm danger" type="button" id="r-tira">Tirar áudio</button>':'')+'</div><span class="help" id="r-msg"></span></div>'+
+    '<div class="row"><button class="btn pri" type="button" id="r-salvar">Salvar rádio</button><a class="btn" href="radio/">Abrir</a><span class="salvo" id="r-ok"></span></div></section>'+
+
+  '<section class="card"><div class="mhead"><h2>O Morse</h2>'+tog('morse')+'</div>'+
+    '<p class="help" style="margin:0 0 12px">No ar, os jogadores ouvem a mensagem limpa e podem conferir o que anotaram. Fora do ar, o bloco funciona só pra anotar.</p>'+
+    '<div class="row"><a class="btn" href="morse/">Abrir</a></div></section>'+
+
+  '<section class="card"><div class="mhead"><h2>O projetor</h2>'+tog('projetor')+'</div>'+
+    '<div class="fld"><span class="lab">Números que aparecem na contagem</span><div class="chips num" id="p-num">'+[8,7,6,5,4,3,2].map(function(n){ return '<button class="chip" type="button" data-n="'+n+'" aria-pressed="'+(mostra.indexOf(n)>=0)+'">'+n+'</button>'; }).join('')+'</div>'+
+      '<span class="help">Riscado é número que não aparece: no lugar dele passa uma emenda preta. O bipe sempre toca no 2.</span></div>'+
+    '<div class="fld"><button class="tog" type="button" id="p-cad" aria-pressed="'+(!!pp.cadeado)+'">'+(pp.cadeado?'Cadeado aparece':'Cadeado escondido')+'</button><span class="help">Mostra um cadeado embaixo do projetor. Deixe escondido até a cena em que ele aparece.</span></div>'+
+    '<div class="fld"><label class="lab" for="p-tit">Nome que aparece em cima do cadeado</label><input id="p-tit" type="text" maxlength="40" autocomplete="off" value="'+esc(pp.titulo||'')+'" placeholder="O cadeado"></div>'+
+    '<div class="fld"><label class="lab" for="p-cod">Código do cadeado</label><input id="p-cod" type="text" inputmode="numeric" maxlength="6" autocomplete="off" value="'+esc(ps.codigo||'')+'" placeholder="Só números, de 3 a 6"></div>'+
+    '<div class="fld"><label class="lab" for="p-den">O que tem dentro (aparece quando abrir)</label><textarea id="p-den" maxlength="1200">'+esc(ps.dentro||'')+'</textarea></div>'+
+    '<div class="fld"><span class="lab">Imagem de dentro (se quiser)</span><div class="prev" id="p-prev">'+(J.src(ps.dentro_img)?'<img src="'+esc(J.src(ps.dentro_img))+'" alt="">':'')+'</div>'+
+      '<input id="p-img" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://… ou pecas/nome.webp" value="'+esc(ps.dentro_img||'')+'">'+
+      '<div class="row" style="margin-top:8px"><label class="btn sm">Enviar foto<input type="file" accept="image/*" class="vh" id="p-file"></label></div><span class="help" id="p-msg"></span></div>'+
+    '<div class="row"><button class="btn pri" type="button" id="p-salvar">Salvar projetor</button><a class="btn" href="projetor/">Abrir</a><span class="salvo" id="p-ok"></span></div></section>'+
+
+  '<button class="btn danger" type="button" id="sair">Sair do painel neste aparelho</button></div>';
+
+  var st={wpm:wpm,mostra:mostra.slice(),cad:!!pp.cadeado,audio:rp.audio||''};
+  var info=function(){ var t=$('#m-txt').value,p=J.codifica(t); $('#m-info').textContent=p?J.soLetras(t).replace(/ /g,'').length+' letras · toca em '+Math.round(J.duracao(p,st.wpm))+' s':''; };
+  $('#m-txt').oninput=info; info();
+  $('#m-wpm').onclick=function(ev){ var b=ev.target.closest('[data-wpm]'); if(!b) return; st.wpm=+b.dataset.wpm; [].forEach.call($('#m-wpm').children,function(x){ x.setAttribute('aria-pressed',String(x===b)); }); info(); };
+  var tocando=null;
+  $('#m-ouvir').onclick=function(){
+    var b=this;
+    if(tocando){ tocando.para(); tocando=null; b.textContent='Ouvir'; return; }
+    var ac=J.audio(),p=J.codifica($('#m-txt').value); if(!ac||!p) return;
+    var g=ac.createGain(); g.gain.value=.35; g.connect(ac.destination);
+    tocando=J.tocaMorse(ac,p,st.wpm,g,ac.currentTime+.1); b.textContent='Parar';
+    setTimeout(function(){ if(tocando){ tocando=null; b.textContent='Ouvir'; } },(tocando.fim-ac.currentTime)*1000+200);
+  };
+  function feito(id,txt){ var e=$('#'+id); e.textContent=txt||'Salvo'; e.className='salvo ok'; e.style.color=''; setTimeout(function(){ if(e.isConnected){ e.textContent=''; e.className='salvo'; } },2500); }
+  function falhou(id,err){ var e=$('#'+id); e.textContent=/senha_errada/.test(err.msg||'')?'Senha mudou: entre de novo':'Não salvou'; e.className='salvo'; e.style.color='var(--bad)'; }
+  $('#m-salvar').onclick=async function(){
+    var txt=J.norm($('#m-txt').value),p=J.codifica(txt);
+    try{
+      await salvar('morse',null,{morse:p,wpm:st.wpm},{texto:txt});
+      await salvar('radio',null,Object.assign({},jogo('radio').publico,{morse:p,wpm:st.wpm}),null);
+      $('#m-txt').value=txt; info(); feito('m-ok');
+    }catch(err){ falhou('m-ok',err); }
+  };
+  $('#r-file').onchange=async function(){
+    var f=this.files&&this.files[0]; if(!f) return;
+    $('#r-msg').textContent='Enviando o áudio…';
+    try{ st.audio=await J.enviar(f,'radio'); await salvar('radio',null,Object.assign({},jogo('radio').publico,{audio:st.audio}),null); painel(); J.toast('Áudio enviado'); }
+    catch(err){ $('#r-msg').textContent=/bucket/i.test(String(err.message||''))?'Falta rodar o sql/jogos-banco.sql (balde jogos).':'Não consegui enviar o áudio. Tente um arquivo menor (até 20 MB).'; }
+    this.value='';
+  };
+  if($('#r-tira')) $('#r-tira').onclick=async function(){ var pub=Object.assign({},jogo('radio').publico); delete pub.audio; await salvar('radio',null,pub,null); painel(); };
+  $('#r-salvar').onclick=async function(){
+    var f=Math.round(+$('#r-f').value);
+    if(!(f>=540&&f<=1600)){ $('#r-ok').textContent='Frequência entre 540 e 1600'; $('#r-ok').style.color='var(--bad)'; return; }
+    try{ await salvar('radio',null,Object.assign({},jogo('radio').publico,{freq:f}),null); feito('r-ok'); }catch(err){ falhou('r-ok',err); }
+  };
+  $('#p-num').onclick=function(ev){
+    var b=ev.target.closest('[data-n]'); if(!b) return;
+    var n=+b.dataset.n,i=st.mostra.indexOf(n);
+    if(i>=0) st.mostra.splice(i,1); else st.mostra.push(n);
+    b.setAttribute('aria-pressed',String(i<0));
+  };
+  $('#p-cad').onclick=function(){ st.cad=!st.cad; this.setAttribute('aria-pressed',String(st.cad)); this.textContent=st.cad?'Cadeado aparece':'Cadeado escondido'; };
+  $('#p-img').oninput=function(){ var u=J.src(this.value); $('#p-prev').innerHTML=u?'<img src="'+esc(u)+'" alt="">':''; };
+  $('#p-file').onchange=async function(){
+    var f=this.files&&this.files[0]; if(!f) return;
+    $('#p-msg').textContent='Enviando a foto…';
+    try{ var u=await J.enviar(f,'projetor'); $('#p-img').value=u; $('#p-prev').innerHTML='<img src="'+esc(u)+'" alt="">'; $('#p-msg').textContent='Foto enviada. Toque em Salvar projetor.'; }
+    catch(err){ $('#p-msg').textContent='Não consegui enviar a foto.'; }
+    this.value='';
+  };
+  $('#p-salvar').onclick=async function(){
+    var cod=$('#p-cod').value.replace(/\D/g,'');
+    if(cod&&(cod.length<3||cod.length>6)){ $('#p-ok').textContent='Código com 3 a 6 números'; $('#p-ok').style.color='var(--bad)'; return; }
+    var img=J.okUrl($('#p-img').value);
+    try{
+      await salvar('projetor',null,{mostra:st.mostra.slice().sort(function(a,b){ return b-a; }),cadeado:st.cad,digitos:cod.length||3,titulo:$('#p-tit').value.trim().slice(0,40)},{codigo:cod,dentro:$('#p-den').value.trim(),dentro_img:img});
+      feito('p-ok');
+    }catch(err){ falhou('p-ok',err); }
+  };
+  app.onclick=async function(ev){
+    var t=ev.target.closest('[data-tog]'); if(!t) return;
+    var id=t.dataset.tog,on=!jogo(id).liberado;
+    t.disabled=true;
+    try{ await salvar(id,on,null,null); t.setAttribute('aria-pressed',String(on)); t.textContent=on?'No ar':'Fora do ar'; J.toast(on?'Liberado pros jogadores':'Escondido dos jogadores'); }
+    catch(err){ J.toast('Não consegui mudar. Tente de novo.'); }
+    t.disabled=false;
+  };
+  $('#sair').onclick=function(){ J.LS.del('sdo_mk'); J.LS.del('sdo_jogos_mestre'); location.href='./'; };
+}
+
+if(mestre){
+  var pw=J.LS.get('sdo_mk');
+  if(pw) entrar(pw,true); else vistaLogin();
+} else {
+  vistaJogadores();
+  setInterval(function(){ if(!document.hidden) vistaJogadores(); },15000);
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>O projetor</title>
+<meta name="theme-color" content="#17201d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="../../comum/jogos.css">
+<style>
+.tela{position:relative;margin:0 auto;max-width:520px;padding:10px;border-radius:6px;background:#050605;box-shadow:0 0 0 1px #222,0 20px 50px rgba(0,0,0,.7)}
+.tela canvas{display:block;width:100%;aspect-ratio:4/3;border-radius:2px;background:#000}
+.tela .luz{position:absolute;inset:-40px;z-index:-1;background:radial-gradient(closest-side,rgba(239,214,150,.18),transparent);opacity:0;transition:opacity .4s}
+.tela.on .luz{opacity:1}
+.ctl{display:flex;gap:8px;margin-top:12px}
+.ctl .btn{flex:1}
+.cofre{position:relative;margin-top:6px;padding:22px 16px 18px;border-radius:14px;background:radial-gradient(120% 100% at 30% 0%,#a9adb0,#6d7276 55%,#4b5054);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -8px 16px rgba(0,0,0,.35),0 14px 30px rgba(0,0,0,.6);color:#16191b}
+.cofre::before{content:"";position:absolute;left:10px;right:10px;top:10px;height:6px;border-radius:3px;background:rgba(0,0,0,.18)}
+.cofre h2{margin:6px 0 4px;font:400 20px/1.1 var(--f-display);color:#16191b}
+.cofre .help{color:#2b3033}
+.cad{isolation:isolate;display:grid;justify-items:center;gap:14px;margin:58px auto 0;padding:18px 14px 16px;max-width:330px;border-radius:16px 16px 22px 22px;
+  background:linear-gradient(#c79b3c,#9c7424);box-shadow:inset 0 2px 0 rgba(255,240,200,.5),inset 0 -6px 10px rgba(0,0,0,.3),0 8px 16px rgba(0,0,0,.45);position:relative}
+.cad::before{content:"";position:absolute;left:50%;top:-46px;width:120px;height:62px;margin-left:-60px;border:14px solid #9aa0a5;border-bottom:0;border-radius:60px 60px 0 0;z-index:-1;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.cad.abre::before{transform:translateY(-22px)}
+.rodas{display:flex;gap:10px}
+.roda{display:grid;justify-items:center;gap:4px}
+.roda button{appearance:none;width:58px;height:34px;border:0;border-radius:6px;background:rgba(0,0,0,.22);color:#2a1d05;font:700 18px/1 var(--f-ui);cursor:pointer}
+.roda .dig{width:58px;height:68px;display:grid;place-items:center;border-radius:6px;background:linear-gradient(#1b1d1e,#3a3d3f 45%,#1b1d1e);color:#f1e2b8;font:700 40px/1 var(--f-body);
+  box-shadow:inset 0 3px 6px rgba(0,0,0,.8);touch-action:none;cursor:ns-resize;-webkit-user-select:none;user-select:none}
+.cad .btn{min-width:180px}
+.dentro{margin-top:14px;padding:16px;border-radius:8px;background:var(--paper);color:var(--ink);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.dentro p{margin:0 0 10px;font:400 16px/1.5 var(--f-body);white-space:pre-line}
+.dentro img{display:block;max-width:100%;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="voltar" href="../" aria-label="Voltar pros minigames">‹</a>
+  <div class="tt"><b>O projetor</b><small>Cabine do Cine Rex</small></div>
+</header>
+<main class="wrap stack">
+  <p class="pdline" id="prev" hidden>Prévia do mestre: os jogadores ainda não veem isto.</p>
+  <p class="lede" id="lede" style="margin:0">O projetor está desligado.</p>
+  <section>
+    <div class="tela" id="tela"><span class="luz"></span><canvas id="cv" width="800" height="600" aria-label="Tela do cinema"></canvas></div>
+    <div class="ctl"><button class="btn pri" type="button" id="liga" disabled>Ligar o projetor</button></div>
+  </section>
+  <section class="cofre" id="cofre" hidden>
+    <h2 id="cofre-t">O cadeado</h2>
+    <p class="help" style="margin:0">Um cadeado de números trava a tampa.</p>
+    <div class="cad" id="cad">
+      <div class="rodas" id="rodas"></div>
+      <button class="btn pri" type="button" id="abrir">Tentar abrir</button>
+    </div>
+    <p class="help" id="pd" style="margin:12px 0 0;text-align:center"></p>
+    <div id="dentro"></div>
+  </section>
+</main>
+
+<script src="../../comum/config.js"></script>
+<script src="../../supabase.js"></script>
+<script src="../../comum/jogos.js"></script>
+<script>
+(function(){
+'use strict';
+var $=J.$,esc=J.esc,cv=$('#cv'),cx=cv.getContext('2d'),W=cv.width,H=cv.height;
+var P={ok:false,previa:false,mostra:[],cad:false,dig:3,seg:null,rodando:false};
+
+/* ---------- a cabeça de rolo ---------- */
+var SEQ=[8,7,6,5,4,3,2],SEG=1,VOLTAS=3,PAUSA=1.6;
+var anim=0,t0=0,som=null,ultimo=-1;
+function grao(n,a){
+  cx.fillStyle='rgba(0,0,0,'+a+')';
+  for(var i=0;i<n;i++){ cx.fillRect(Math.random()*W,Math.random()*H,1+Math.random()*2,1+Math.random()*2); }
+}
+function riscos(){
+  if(Math.random()<.35){ cx.strokeStyle='rgba(255,255,255,'+(.15+Math.random()*.25)+')'; cx.lineWidth=1+Math.random(); var x=Math.random()*W; cx.beginPath(); cx.moveTo(x,0); cx.lineTo(x+Math.random()*6-3,H); cx.stroke(); }
+  if(Math.random()<.2){ cx.fillStyle='rgba(20,15,10,.6)'; cx.beginPath(); cx.arc(Math.random()*W,Math.random()*H,2+Math.random()*5,0,7); cx.fill(); }
+}
+function quadroNumero(n,p){
+  cx.fillStyle='#bdb7a6'; cx.fillRect(0,0,W,H);
+  var X=W/2,Y=H/2,R1=H*.42,R2=H*.33;
+  /* o ponteiro que gira uma volta por segundo */
+  cx.fillStyle='rgba(30,26,20,.42)'; cx.beginPath(); cx.moveTo(X,Y); cx.arc(X,Y,Math.hypot(W,H),-Math.PI/2,-Math.PI/2+p*Math.PI*2); cx.closePath(); cx.fill();
+  cx.strokeStyle='#f4f1e6'; cx.lineWidth=5;
+  cx.beginPath(); cx.arc(X,Y,R1,0,7); cx.stroke();
+  cx.beginPath(); cx.arc(X,Y,R2,0,7); cx.stroke();
+  cx.strokeStyle='#1f1b16'; cx.lineWidth=3;
+  cx.beginPath(); cx.moveTo(0,Y); cx.lineTo(W,Y); cx.moveTo(X,0); cx.lineTo(X,H); cx.stroke();
+  cx.fillStyle='#121009'; cx.font='700 '+Math.round(H*.5)+'px "Barlow Condensed","Arial Narrow",sans-serif'; cx.textAlign='center'; cx.textBaseline='middle';
+  cx.fillText(String(n),X,Y+H*.02);
+}
+function quadroEmenda(p){
+  /* número que falta: emenda com fita, sem número */
+  cx.fillStyle=p<.06?'#e8e3d2':'#070606'; cx.fillRect(0,0,W,H);
+  if(p>=.06){
+    cx.save(); cx.translate(W/2,H/2); cx.rotate(-.18);
+    cx.fillStyle='rgba(190,180,150,.16)'; cx.fillRect(-W,-H*.07,W*2,H*.14);
+    cx.fillStyle='rgba(255,255,255,.08)'; for(var i=-12;i<=12;i++) cx.fillRect(i*W/12-6,-H*.05,12,8);
+    cx.restore();
+  }
+}
+function moldura(t){
+  /* tremida, cintilação e vinheta */
+  var g=cx.createRadialGradient(W/2,H/2,H*.25,W/2,H/2,H*.85); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.6)');
+  cx.fillStyle=g; cx.fillRect(0,0,W,H);
+  cx.fillStyle='rgba(0,0,0,'+(Math.random()*.1)+')'; cx.fillRect(0,0,W,H);
+}
+function desenhaParado(msg){
+  cx.setTransform(1,0,0,1,0,0); cx.fillStyle='#000'; cx.fillRect(0,0,W,H);
+  cx.fillStyle='rgba(239,214,150,.45)'; cx.font='400 30px "Special Elite","Courier New",monospace'; cx.textAlign='center'; cx.textBaseline='middle';
+  cx.fillText(msg||'',W/2,H/2);
+}
+function quadro(){
+  var ac=som&&som.ac,agora=ac?ac.currentTime:performance.now()/1000,t=agora-t0;
+  var ciclo=SEQ.length*SEG+PAUSA,volta=Math.floor(t/ciclo),dentro=t-volta*ciclo;
+  if(t<0){ anim=requestAnimationFrame(quadro); return; }
+  if(volta>=VOLTAS){ fim(); return; }
+  cx.setTransform(1,0,0,1,(Math.random()-.5)*4,(Math.random()-.5)*4);
+  var i=Math.floor(dentro/SEG);
+  if(i>=SEQ.length){ cx.fillStyle='#000'; cx.fillRect(-10,-10,W+20,H+20); grao(200,.0); }
+  else {
+    var n=SEQ[i],p=(dentro-i*SEG)/SEG;
+    if(P.mostra.indexOf(n)>=0) quadroNumero(n,p); else quadroEmenda(p);
+    grao(380,.22); riscos(); moldura();
+  }
+  anim=requestAnimationFrame(quadro);
+}
+function montaSom(){
+  var ac=J.audio(); if(!ac) return null;
+  var out=ac.createGain(); out.gain.value=.8; out.connect(ac.destination);
+  var n=J.ruido(ac,2),lp=ac.createBiquadFilter(); lp.type='bandpass'; lp.frequency.value=900; lp.Q.value=.8;
+  var g=ac.createGain(); g.gain.value=.12; n.connect(lp); lp.connect(g); g.connect(out);
+  var lfo=ac.createOscillator(),lg=ac.createGain(); lfo.type='square'; lfo.frequency.value=24; lg.gain.value=.07; lfo.connect(lg); lg.connect(g.gain);
+  var mot=ac.createOscillator(),mg=ac.createGain(); mot.type='sawtooth'; mot.frequency.value=48; mg.gain.value=.02; mot.connect(mg); mg.connect(out);
+  n.start(); lfo.start(); mot.start();
+  return {ac:ac,out:out,para:function(){ try{ n.stop(); lfo.stop(); mot.stop(); }catch(e){} try{ out.disconnect(); }catch(e){} }};
+}
+function liga(){
+  if(P.rodando){ fim(); return; }
+  if(!P.ok) return;
+  som=montaSom(); P.rodando=true;
+  var ac=som&&som.ac,agora=ac?ac.currentTime:performance.now()/1000;
+  t0=agora+.6;
+  if(ac){
+    var ciclo=SEQ.length*SEG+PAUSA;
+    /* o bipe seco cai no começo do 2, em cada volta */
+    for(var v=0;v<VOLTAS;v++) J.bipe(ac,som.out,t0+v*ciclo+(SEQ.length-1)*SEG,1000,.07,.55);
+  }
+  $('#tela').classList.add('on'); $('#liga').textContent='Desligar';
+  cancelAnimationFrame(anim); anim=requestAnimationFrame(quadro);
+}
+function fim(){
+  cancelAnimationFrame(anim); P.rodando=false;
+  if(som){ som.para(); som=null; }
+  $('#tela').classList.remove('on'); $('#liga').textContent=P.ok?'Rodar de novo':'Ligar o projetor';
+  desenhaParado(P.ok?'':'');
+}
+$('#liga').onclick=liga;
+
+/* ---------- o cadeado ---------- */
+var R=[];
+function rodas(){
+  if(R.length!==P.dig) R=new Array(P.dig).fill(0);
+  $('#rodas').innerHTML=R.map(function(v,i){
+    return '<div class="roda"><button type="button" data-r="'+i+'" data-d="1" aria-label="Número '+(i+1)+' pra cima">▲</button><div class="dig" data-i="'+i+'" aria-label="Número '+(i+1)+': '+v+'">'+v+'</div><button type="button" data-r="'+i+'" data-d="-1" aria-label="Número '+(i+1)+' pra baixo">▼</button></div>';
+  }).join('');
+}
+function gira(i,d){ R[i]=(R[i]+d+10)%10; var el=$('.dig[data-i="'+i+'"]'); if(el){ el.textContent=R[i]; el.setAttribute('aria-label','Número '+(i+1)+': '+R[i]); } if(navigator.vibrate) navigator.vibrate(8); }
+$('#rodas').addEventListener('click',function(e){ var b=e.target.closest('[data-r]'); if(b) gira(+b.dataset.r,+b.dataset.d); });
+(function(){
+  var y0=null,i=null,acc=0;
+  $('#rodas').addEventListener('pointerdown',function(e){ var d=e.target.closest('.dig'); if(!d) return; i=+d.dataset.i; y0=e.clientY; acc=0; try{ d.setPointerCapture(e.pointerId); }catch(err){} });
+  $('#rodas').addEventListener('pointermove',function(e){ if(y0==null) return; acc+=y0-e.clientY; y0=e.clientY; while(acc>22){ gira(i,1); acc-=22; } while(acc<-22){ gira(i,-1); acc+=22; } });
+  var fimR=function(){ y0=null; }; $('#rodas').addEventListener('pointerup',fimR); $('#rodas').addEventListener('pointercancel',fimR);
+})();
+$('#abrir').onclick=async function(){
+  var b=this,cod=R.join('');
+  b.disabled=true; b.textContent='Girando…';
+  var r;
+  try{
+    if(P.previa){ r=(P.seg&&String(P.seg.codigo||'')===cod)?{ok:true,texto:P.seg.dentro||'',img:P.seg.dentro_img||''}:{ok:false}; }
+    else r=await J.rpc('sdo_j_cadeado',{p_codigo:cod});
+  }catch(err){ J.toast(J.erroTxt(err)); b.disabled=false; b.textContent='Tentar abrir'; return; }
+  if(r&&r.ok){
+    $('#cad').classList.add('abre'); J.carimbo('ABRIU','ok');
+    var img=J.src(r.img);
+    $('#dentro').innerHTML='<div class="dentro">'+(r.texto?'<p>'+esc(r.texto)+'</p>':'<p>A tampa abriu.</p>')+(img?'<img src="'+esc(img)+'" alt="">':'')+'</div>';
+    J.LS.set('sdo_cadeado_ok','1');
+    b.textContent='Aberta'; return;
+  }
+  if(r&&r.fora){ J.toast('O cadeado não está valendo agora.'); b.disabled=false; b.textContent='Tentar abrir'; return; }
+  $('#cad').classList.remove('treme'); void $('#cad').offsetWidth; $('#cad').classList.add('treme');
+  J.carimbo('−1 PD');
+  await J.perde1PD('cadeado');
+  setTimeout(function(){ b.disabled=false; b.textContent='Tentar abrir'; },900);
+};
+
+/* ---------- o que o mestre liberou ---------- */
+async function carrega(){
+  try{
+    var e=await J.estado(),p=e.projetor||{},prev=false,seg=null;
+    if(!p.liberado&&J.ehMestre()&&J.LS.get('sdo_mk')){
+      try{ var t=await J.rpc('sdo_m_j_ler',{p_senha:J.LS.get('sdo_mk')}); if(t.projetor){ p=Object.assign({},t.projetor.publico); seg=t.projetor.segredo||{}; prev=true; } }catch(err){}
+    }
+    var ok=!!(p.liberado||prev);
+    P.ok=ok; P.previa=prev; P.seg=seg;
+    P.mostra=Array.isArray(p.mostra)?p.mostra.map(Number):[];
+    P.cad=!!p.cadeado; P.dig=Math.min(6,Math.max(3,+p.digitos||3));
+    $('#cofre-t').textContent=String(p.titulo||'').trim()||'O cadeado';
+    $('#prev').hidden=!prev;
+    $('#lede').textContent=ok?'Ligue o projetor e preste atenção na contagem. Ela passa três vezes.':'O projetor está desligado. Quando o mestre liberar, dá pra ligar.';
+    $('#liga').disabled=!ok;
+    if(!ok&&P.rodando) fim();
+    if(!P.rodando) $('#liga').textContent=ok?'Ligar o projetor':'Ligar o projetor';
+    var mostrar=ok&&P.cad;
+    if(mostrar&&$('#cofre').hidden){ rodas(); J.linhaPD($('#pd')); }
+    $('#cofre').hidden=!mostrar;
+  }catch(err){ $('#lede').textContent=J.erroTxt(err); }
+}
+desenhaParado('');
+carrega();
+setInterval(function(){ if(!document.hidden) carrega(); },15000);
+})();
+</script>
+</body>
+</html>
