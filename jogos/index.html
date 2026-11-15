@@ -24,7 +24,7 @@
 /* painel do mestre */
 .mhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
 .mhead h2{margin:0}
-.tog{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ui-dim);font:600 13px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.tog{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 14px;border:1px solid var(--lamp);border-radius:999px;background:rgba(239,181,63,.08);color:var(--ui);font:600 13px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .tog::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mute)}
 .tog[aria-pressed="true"]{border-color:#2f8a6c;color:#9fe6c6;background:rgba(95,224,176,.08)}
 .tog[aria-pressed="true"]::before{background:#5fe0b0;box-shadow:0 0 8px #5fe0b0}
@@ -102,7 +102,7 @@ async function salvar(id,lib,pub,seg){
   await J.rpc('sdo_m_j_salvar',{p_senha:M.pw,p_id:id,p_liberado:lib,p_publico:pub,p_segredo:seg});
   M.d=await J.rpc('sdo_m_j_ler',{p_senha:M.pw});
 }
-function tog(id){ var on=jogo(id).liberado; return '<button class="tog" type="button" data-tog="'+id+'" aria-pressed="'+on+'">'+(on?'No ar':'Fora do ar')+'</button>'; }
+function tog(id){ var on=jogo(id).liberado; return '<button class="tog" type="button" data-tog="'+id+'" aria-pressed="'+on+'">'+(on?'No ar · tirar':'Pôr no ar')+'</button>'; }
 function painel(){
   var r=jogo('radio'),m=jogo('morse'),p=jogo('projetor');
   var rp=r.publico||{},mp=m.publico||{},ms=m.segredo||{},pp=p.publico||{},ps=p.segredo||{};
@@ -110,7 +110,7 @@ function painel(){
   var wpm=+mp.wpm||10;
   $('#sub').textContent='Painel do mestre';
   app.innerHTML='<h1>Minigames</h1><p class="lede">Configure e libere cada jogo na hora da cena. O que é resposta fica só no banco, nunca no site.</p>'+
-  '<p class="pdline">Este aparelho ficou marcado como do mestre: errar aqui não tira PD de ninguém. Os jogadores abrem <b>jogos/</b> (sem o ?mestre).</p>'+
+  '<p class="pdline">Pra liberar um jogo, toque em <b>Pôr no ar</b>, no canto do cartão. Ele fica verde e aparece pros jogadores. Este aparelho ficou marcado como do mestre: errar aqui não tira PD de ninguém. Os jogadores abrem <b>jogos/</b> (sem o ?mestre).</p>'+
   '<div class="stack">'+
 
   '<section class="card"><h2>A mensagem em Morse</h2><p class="help" style="margin-top:0">Vale pro rádio e pro bloco do Morse. Letras sem acento; ponto, vírgula e interrogação também viram Morse.</p>'+
@@ -207,7 +207,7 @@ function painel(){
     var t=ev.target.closest('[data-tog]'); if(!t) return;
     var id=t.dataset.tog,on=!jogo(id).liberado;
     t.disabled=true;
-    try{ await salvar(id,on,null,null); t.setAttribute('aria-pressed',String(on)); t.textContent=on?'No ar':'Fora do ar'; J.toast(on?'Liberado pros jogadores':'Escondido dos jogadores'); }
+    try{ await salvar(id,on,null,null); t.setAttribute('aria-pressed',String(on)); t.textContent=on?'No ar · tirar':'Pôr no ar'; J.toast(on?'Liberado pros jogadores':'Escondido dos jogadores'); }
     catch(err){ J.toast('Não consegui mudar. Tente de novo.'); }
     t.disabled=false;
   };
