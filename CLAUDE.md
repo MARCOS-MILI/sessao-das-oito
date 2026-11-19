@@ -27,6 +27,9 @@ só por funções SQL; o quadro da mesa grava direto em `mesa_cards`, `mesa_link
 - Nunca escrever senha (quadro, fichas, terminal) nem a chave `secret` do Supabase em arquivo nenhum.
 - Não mudar de lugar `index.html`, `ficha.html` e `terminal.html`: os jogadores já têm links salvos
   (por exemplo `ficha.html?j=CÓDIGO`). Coisa nova entra em pasta nova.
+- 18/11/2026: o Marcos terá duas mesas, presencial e online. Cada uma usa o seu código de sala (`presencial`, `online`),
+  com quadro, mapa e peças próprios. Links `#mesa/presencial` e `#mesa/online`. Ficha, terminal e minigames são
+  um só pros dois grupos (por enquanto).
 - Testar no celular (largura 390 px) antes de subir: `python3 -m http.server 8802` na pasta e abrir no Playwright.
   O quadro tem teste pronto: `node testes/quadro-mapa.test.js` (usa `testes/stub-supabase.js` no lugar do Supabase,
   com banco no localStorage e tempo real entre abas). Se mexer no quadro, rodar e ampliar esse teste.

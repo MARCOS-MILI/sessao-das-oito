@@ -151,6 +151,41 @@ const tokXY = (p, name) => p.evaluate(n => { const el = [...document.querySelect
   ok((await D.locator('.tok').count()) === 1, 'desfazer devolve a peça');
   await shot(D, '9-pessoal');
   await c3.close();
+
+  /* ---------- duas mesas (presencial e online): cada uma com o seu mapa e as suas peças ---------- */
+  const c4 = await ctxNew(b);
+  const E = await c4.newPage(); watch(E, 'E');
+  await E.goto(BASE + '#mesa/presencial'); await E.waitForTimeout(600);
+  ok((await E.inputValue('#s-code')) === 'presencial', 'link da mesa presencial já traz o código');
+  await E.fill('#s-name', 'Mili'); await E.click('#s-go'); await E.waitForTimeout(900);
+  ok((await E.textContent('#bName')) === 'Mesa presencial', 'topo mostra Mesa presencial');
+  await E.click('#modes [data-mode="mapa"]'); await E.click('[data-act="maps"]');
+  ok(await E.isVisible('[data-madd="cidade2"]'), 'segundo mapa pronto aparece na folha');
+  await E.click('[data-madd="cidade"]'); await E.waitForTimeout(900);
+  await E.click('[data-act="tnew"]'); await E.fill('#t-name', 'Abel'); await E.click('.sheet [data-close]'); await E.waitForTimeout(500);
+  ok((await E.locator('.tok').count()) === 1, 'mesa presencial tem a peça do Abel');
+  await E.evaluate(() => { location.hash = 'mesa/online'; }); await E.waitForTimeout(1200);
+  ok((await E.textContent('#bName')) === 'Mesa online', 'trocar o link troca pra Mesa online');
+  await E.click('#modes [data-mode="mapa"]').catch(() => {}); await E.waitForTimeout(400);
+  ok((await E.locator('.tok').count()) === 0, 'mesa online não vê a peça da presencial');
+  ok((await E.textContent('#liveNote')).includes('Nenhum mapa'), 'mesa online começa sem mapa');
+  await E.click('[data-act="maps"]'); await E.click('[data-madd="cidade2"]'); await E.waitForTimeout(900);
+  await E.click('[data-act="tnew"]'); await E.fill('#t-name', 'Thomas'); await E.click('.sheet [data-close]'); await E.waitForTimeout(500);
+  const roomsTok = await E.evaluate(() => Object.values(JSON.parse(localStorage.getItem('stub:mesa_tokens') || '{}')).map(r => r.room + ':' + r.data.name).sort());
+  ok(JSON.stringify(roomsTok) === JSON.stringify(['online:Thomas', 'presencial:Abel']), 'banco guarda cada peça na sua sala ' + JSON.stringify(roomsTok));
+  await E.evaluate(() => { location.hash = 'mesa/presencial'; }); await E.waitForTimeout(1200);
+  ok((await E.textContent('#bName')) === 'Mesa presencial' && (await E.locator('.tok').count()) === 1, 'volta pra presencial e a peça do Abel está lá');
+  ok(/mapa-jogadores-antes/.test(await E.getAttribute('#mimg', 'src')), 'presencial mostra o mapa da cidade');
+  await E.reload(); await E.waitForTimeout(1500);
+  ok((await E.textContent('#bName')) === 'Mesa presencial', 'recarregar fica na mesma mesa');
+  await shot(E, '10-duas-mesas');
+  /* botões das duas mesas na tela inicial e atalhos na folha de entrada */
+  await E.goto(BASE + '#'); await E.waitForTimeout(500);
+  await E.evaluate(() => { location.hash = ''; }); await E.waitForTimeout(500);
+  ok(await E.isVisible('#tRooms'), 'tela inicial mostra Mesa presencial e Mesa online');
+  await E.click('#tRooms [data-room="online"]'); await E.waitForTimeout(1200);
+  ok((await E.textContent('#bName')) === 'Mesa online', 'botão da tela inicial abre a mesa online');
+  await c4.close();
   await b.close();
   console.log(fails ? fails + ' FALHAS' : 'TUDO PASSOU');
   process.exit(fails ? 1 : 0);

@@ -22,6 +22,11 @@ Sem ele, o quadro continua funcionando e o mapa avisa o que falta.
 
 O quadro do mestre abre com senha e fica só no aparelho. O quadro da mesa guarda os cartões e os fios
 no Supabase (tabelas `mesa_cards` e `mesa_links`), e cada mesa usa um código.
+
+Duas mesas (presencial e online): cada código de mesa tem o seu quadro, o seu mapa e as suas peças. Link direto:
+`#mesa/presencial` e `#mesa/online` (qualquer outro código também serve, por exemplo `#mesa/teste`). O link guarda o código
+no aparelho e abre a mesa; trocar o final do endereço troca de mesa. Na tela inicial e no menu "Trocar nome ou código" há
+atalhos pras duas.
 A chave que está no `index.html` é a `publishable`, que pode ficar pública. Nunca coloque a chave `secret` aqui.
 
 ## Fichas dos jogadores (`ficha.html`)
